@@ -14,7 +14,7 @@
 
 .dc-chart .pie-slice {
   fill: #fff;
-  font-size: 9px;
+  font-size: 12px;
   cursor: pointer; }
   .dc-chart .pie-slice.external {
     fill: #000; }
@@ -43,8 +43,7 @@
   shape-rendering: crispEdges; }
 
 .dc-chart .axis text {
-  font: 8px sans-serif;
-}
+  font: 10px sans-serif; }
 
 .dc-chart .grid-line, .dc-chart .axis .grid-line, .dc-chart .grid-line line, .dc-chart .axis .grid-line line {
   fill: none;
@@ -88,16 +87,14 @@
 
 .dc-chart g.row rect {
   fill-opacity: 0.8;
-  font-size: 10px;
   cursor: pointer; }
   .dc-chart g.row rect:hover {
     fill-opacity: 0.6; }
 
 .dc-chart g.row text {
   fill: #fff;
-  font-size: 8px;
-  cursor: pointer; 
- }
+  font-size: 12px;
+  cursor: pointer; }
 
 .dc-chart g.dc-tooltip path {
   fill: none;
@@ -122,7 +119,7 @@
   pointer-events: none; }
 
 .dc-chart .node {
-  font-size: 9px;
+  font-size: 0.7em;
   cursor: pointer; }
   .dc-chart .node :hover {
     fill-opacity: .8; }
@@ -203,7 +200,7 @@
     font-weight: bold; }
 
 .dc-legend {
-  font-size: 9px; }
+  font-size: 11px; }
   .dc-legend .dc-legend-item {
     cursor: pointer; }
 
@@ -243,7 +240,7 @@ div.dc-html-legend {
     vertical-align: middle;
     padding-left: 3px;
     padding-right: 3px;
-    font-size: 9px; }
+    font-size: 0.75em; }
 
 .dc-html-legend-container {
   height: inherit; }
