@@ -19,6 +19,8 @@ const allData = Promise.all([
 ]);
 
 
+var charts = undefined;
+
 
 allData.then(data => {
 
@@ -86,58 +88,60 @@ allData.then(data => {
     var coordenacaoGroup    = coordenacaoDim.group();
     var tableGroup          = tableDim.group();
 
+    charts = [
+         mesChart
+            .dimension(mesDim)
+            .width(300)
+            .group(mesGroup)
+            .elasticY(true)
+          .x(d3.scaleLinear()
+            .domain([1, 12])),
 
-     mesChart
-        .dimension(mesDim)
-        .width(300)
-        .group(mesGroup)
-        .elasticY(true)
-      .x(d3.scaleLinear()
-        .domain([1, 12]));
+        usuarioChart
+            .height(1800)
+            .dimension(usuarioDim)
+            .group(usuarioGroup)
+            .elasticX(true),
 
-    usuarioChart
-        .height(1800)
-        .dimension(usuarioDim)
-        .group(usuarioGroup)
-        .elasticX(true);
+        setorChart
+            .height(700)
+            .dimension(coordenacaoDim)
+            .group(coordenacaoGroup)
+            .elasticX(true),
 
-    setorChart
-        .height(700)
-        .dimension(coordenacaoDim)
-        .group(coordenacaoGroup)
-        .elasticX(true);
+         movimentoChart
+            .height(2800)
+            .dimension(movimentoDim)
+            .group(movimentoGroup)
+            .elasticX(true),
 
-     movimentoChart
-        .height(2800)
-        .dimension(movimentoDim)
-        .group(movimentoGroup)
-        .elasticX(true);
-
-     horaChart
-        .dimension(horaDim)
-        //.width(500)
-        .group(horaGroup)
-        .elasticY(true)
-        .options ({
-          'width' : 300,
-          'height' : 200
-        })  
-      .x(d3.scaleLinear()
-        .domain([0, 24])
-        .rangeRound([0, 10 * 24]));
-
-      vencidosChart
-           .dimension(atrasoDim)
+         horaChart
+            .dimension(horaDim)
             //.width(500)
-            .group(atrasoGroup)
+            .group(horaGroup)
             .elasticY(true)
             .options ({
-              'width' : 500,
+              'width' : 300,
               'height' : 200
             })  
           .x(d3.scaleLinear()
-            .domain([-10, 20])); //ate 20 dias
-            //.rangeRound([0, 10 * 24])); 
+            .domain([0, 24])
+            .rangeRound([0, 10 * 24])),
+
+          vencidosChart
+               .dimension(atrasoDim)
+                //.width(500)
+                .group(atrasoGroup)
+                .elasticY(true)
+                .options ({
+                  'width' : 500,
+                  'height' : 200
+                })  
+              .x(d3.scaleLinear()
+                .domain([-10, 20])) //ate 20 dias
+                //.rangeRound([0, 10 * 24])); 
+        ]    
+
 
       count
         .dimension(ndx)
@@ -166,7 +170,15 @@ allData.then(data => {
 
     dc.renderAll();    
 
+
+
 }) 
+
+
+window.filter = function(filters) {
+    filters.forEach(function(d, i) { charts[i].filter(d); });
+    dc.renderAll();
+};
 
 function nomeDeLogin(nome){
    // return nome;
