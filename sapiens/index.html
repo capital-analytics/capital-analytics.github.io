@@ -2,11 +2,11 @@
 <html>
 <head> 
     <meta charset="utf-8">    
-    <script src='js/d3.min.js'></script>
-    <script src='js/crossfilter.min.js'></script>
-    <script src='js/dc.min.js'></script>
+    <script src='../js/d3.min.js'></script>
+    <script src='../js/crossfilter.min.js'></script>
+    <script src='../js/dc.min.js'></script>
 
-    <style src='css/dc.css'></style>
+    <style src='../css/dc.css'></style>
     <style>
 
         /** Curso **/
@@ -66,6 +66,22 @@
                     <div class="clearfix"></div>
                 </div>
             </div>
+
+            <div id="grafico1">
+                <div id="vencidoChart" class="chart">
+                    <strong>Prazo vencido: (em dias) </strong>
+                    <a class="reset" href="javascript:vencidosChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                    <div class="clearfix"></div>
+                </div>
+                <div id="usuarioChart">
+                    <strong>Usuário: </strong>
+                    <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                    <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+
+
             <div id="grafico1">
                  <div id="setorChart">
                     <strong>Coordenação: </strong>
@@ -81,17 +97,7 @@
                 </div>
             </div>
 
-            <div id="grafico1">
-                <div id="usuarioChart">
-                    <strong>Usuário: </strong>
-                    <span class="reset" style="display:none;"> <span class="filter"></span></span>
-                    <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
-                    <div class="clearfix"></div>
-                </div>
-            </div>
-            <div id="grafico1">
 
-            </div>
      </div>   
 
 
@@ -103,28 +109,48 @@
             movimentoChart  = dc.rowChart("#movimentoChart"),
             mesChart        = dc.barChart("#mesChart"),
             horaChart       = dc.barChart("#hour-chart"),
+            vencidosChart   = dc.barChart("#vencidoChart"),
             count           = dc.dataCount(".dc-data-count");
 
+
          //Id;NUP;Tarefa_id;Setor;Usuario;Especie;Dia_hora
-        const tarefas = d3.csv("data/sapiens/atividades.csv",  d => ({
+        const allData = Promise.all([
+             //tarefas
+            d3.csv("../data/sapiens/tarefas.csv"),
+            //atividades
+            d3.csv("../data/sapiens/atividades.csv")
+        ]);
+
+
+       
+        allData.then(data => {
+
+            var tarefas     = data[0],
+                atividades  = data[1];
+
+             
+            //efetuar melhoria no join de tabelas
+            var dados = join(tarefas, atividades, "tarefa_id", "tarefa_id", function(d, t) {
+                return {
                   id:           d.Id,
                   nup:          d.NUP,
-                  t_id:         d.Tarefa_id,
+                  t_id:         d.tarefa_id,
                   setor:        d.Setor,
                   usuario:      nomeDeLogin(d.Usuario),
                   movimento:    d.Especie,
-                  data:         d.Dia_hora
-         }));
+                  prazo_i:      (t !== undefined) ? parseDate(t.Inicio_prazo) : null,
+                  prazo_f:      (t !== undefined) ? parseDate(t.Final_prazo) : null,
+                  data:         parseDate(d.Dia_hora)
+                }
+            });
+   
 
-       
-        tarefas.then(data => {
-
-            //tratamento da data
-            data.forEach(d =>{
+            /**tratamento da data
+            dados.forEach(d =>{
                 d.data = parseDate(d.data);
-            })
+            })**/
 
-            var ndx = crossfilter(data);
+            var ndx = crossfilter(dados);
             var all = ndx.groupAll();
 
             var movimentoDim = ndx.dimension(function(d){
@@ -135,9 +161,14 @@
                 return d.usuario;
             });
 
-            var dataDim = ndx.dimension(function(d){
-                return d.data;
+            //atividades encerradas apos o prazo final
+            var atrasoDim = ndx.dimension(function(e){
+                return daysBetween(e.data, e.prazo_f)
             })
+
+            /** var dataDim = ndx.dimension(function(d){
+                return d.data;
+            })**/
 
             var horaDim = ndx.dimension(function(d){
                 return d.data.getHours() + d.data.getMinutes() / 60;
@@ -153,7 +184,7 @@
 
             var movimentoGroup      = movimentoDim.group();
             var usuarioGroup        = usuarioDim.group();
-            var dataGroup           = dataDim.group();
+            var atrasoGroup         = atrasoDim.group();
             var horaGroup           = horaDim.group(Math.floor);
             var mesGroup            = mesDim.group();
             var coordenacaoGroup    = coordenacaoDim.group();
@@ -189,6 +220,19 @@
                 .domain([0, 24])
                 .rangeRound([0, 10 * 24]));
 
+               vencidosChart
+                   .dimension(atrasoDim)
+                    //.width(500)
+                    .group(atrasoGroup)
+                    .elasticY(true)
+                    .options ({
+                      'width' : 500,
+                      'height' : 200
+                    })  
+                  .x(d3.scaleLinear()
+                    .domain([-10, 20])); //ate 20 dias
+                    //.rangeRound([0, 10 * 24])); 
+
                 mesChart
                     .dimension(mesDim)
                     .width(500)
@@ -198,7 +242,8 @@
                     .domain([1, 12]));
 
                 horaChart.margins().left = 50;    
-                mesChart.margins().left = 50;          
+                mesChart.margins().left = 50;   
+                vencidosChart.margins().left = 50;       
  
               count
                 .dimension(ndx)
@@ -216,6 +261,10 @@
 
         }
 
+        function daysBetween(one, another) {
+          return Math.round((one - another)/8.64e7);
+        }
+
         function reduzir(mov){
             if(mov.length > 80){
                 return mov.substring(0, 80).concat("...");
@@ -224,6 +273,8 @@
 
          // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
         function parseDate(data){
+
+           // if(data == undefined) return;
 
             let Y = data.substring(6,10); 
             let m = data.substring(3,5)-1; //mes comeca com zero
@@ -235,6 +286,23 @@
 
             return new Date(Y, m, d, h, mn, s);
         }   
+
+        function join(lookupTable, mainTable, lookupKey, mainKey, select) {
+            var l = lookupTable.length,
+                m = mainTable.length,
+                lookupIndex = [],
+                output = [];
+            for (var i = 0; i < l; i++) { // loop through l items
+                var row = lookupTable[i];
+                lookupIndex[row[lookupKey]] = row; // create an index for lookup table
+            }
+            for (var j = 0; j < m; j++) { // loop through m items
+                var y = mainTable[j];
+                var x = lookupIndex[y[mainKey]]; // get corresponding row from lookupTable
+                output.push(select(y, x)); // select only the columns you need
+            }
+            return output;
+        };
 
     </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
