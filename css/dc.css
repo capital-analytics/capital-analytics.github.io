@@ -94,7 +94,9 @@
 .dc-chart g.row text {
   fill: #fff;
   font-size: 12px;
-  cursor: pointer; }
+  cursor: pointer;
+  color: #000;
+  }
 
 .dc-chart g.dc-tooltip path {
   fill: none;

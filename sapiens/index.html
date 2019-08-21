@@ -2,11 +2,13 @@
 <html lang="en">
 <head> 
     <meta charset="utf-8">    
-    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css" />
     <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
     <style>
         div.dc-chart {
-            float: left;
+           /* float: left; */
+           /* border: 1px solid #000; */
+            color: #000;
         }
         #monthly-volume-chart g.y {
             display: none;
@@ -17,10 +19,9 @@
         }
 
         .row{
-            color: #000;
+             color: #000; 
         }
     </style>
-
 </head>
 <body>
 
@@ -37,37 +38,43 @@
         feedback to user interaction.
 
         <div class="row">
-            <div id="dataCount">
-                <span class="filter-count"></span> selecionados de <span class="total-count"></span> registros | 
-                <a href="javascript:dc.filterAll(); dc.renderAll();">Resetar tudo</a>
+           <div class="col">
+                 <div id="mesChart">
+                    <strong>Mês</strong>
+                    <a class="reset" href="javascript:mesChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>
             </div>
-        </div> 
-        <div class="row">
-            <div id="mesChart">
-                <strong>Mês</strong>
-                <a class="reset" href="javascript:mesChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
+            <div class="col">
+                 <div id="semanaChart">
+                    <strong>Dia da semana</strong>
+                    <a class="reset" href="javascript:semanaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
 
-                <div class="clearfix"></div>
+                    <div class="clearfix"></div>
+                </div>        
             </div>
+            <div class="col">
+                 <div id="horaChart">
+                    <strong>Hora</strong>
+                    <a class="reset" href="javascript:horaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
 
-             <div id="horaChart">
-                <strong>Dia da semana</strong>
-                <a class="reset" href="javascript:horaChart.filterAll();dc.redrawAll();" style="display: none;">reset</a>
-
-                <div class="clearfix"></div>
+                    <div class="clearfix"></div>
+                </div>        
             </div>
-        </div> 
+            <div class="col">
+                 <div id="vencidoChart">
+                    <strong>Prazo</strong>
+                    <a class="reset" href="javascript:vencidosChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
 
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            </div> 
             <div id="setorChart">
                 <strong>Coordenação: </strong>
                 <span class="reset" style="display:none;"> <span class="filter"></span></span>
                 <a class="reset" href="javascript:setorChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
-                <div class="clearfix"></div>
-            </div>
-            <div id="movimentoChart">
-                <strong>Tarefas: </strong>
-                <span class="reset" style="display:none;"> <span class="filter"></span></span>
-                <a class="reset" href="javascript:movimentoChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
                 <div class="clearfix"></div>
             </div>
             <div id="usuarioChart">
@@ -76,11 +83,21 @@
                 <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
                 <div class="clearfix"></div>
             </div>
+            <div id="movimentoChart">
+                <strong>Tarefas: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:movimentoChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <br/>
+            <div class="row">
+                 <div id="dataCount">
+                    <span class="filter-count"></span> selecionados de <span class="total-count"></span> registros | 
+                    <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                </div>
 
-
-        <div class="row">
-            <table class="table table-hover dc-data-table"></table>
-        </div>
+                <table class="table table-hover dc-data-table"></table>
+            </div>
     <div>
     <script src='../js/d3.min.js'></script>
     <script src='../js/crossfilter.min.js'></script>

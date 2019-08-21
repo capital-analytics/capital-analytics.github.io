@@ -3,7 +3,7 @@ var usuarioChart    = dc.rowChart("#usuarioChart"),
     setorChart      = dc.rowChart("#setorChart"),
     movimentoChart  = dc.rowChart("#movimentoChart"),
     mesChart        = dc.barChart("#mesChart"),
-    //semanaChart     = dc.rowChart('#semanaChart'),
+    semanaChart     = dc.rowChart('#semanaChart'),
     horaChart       = dc.barChart("#horaChart"),
     vencidosChart   = dc.barChart("#vencidoChart"),
     count           = dc.dataCount("#dataCount"),
@@ -38,8 +38,8 @@ allData.then(data => {
           movimento:        d.Especie,
           prazo_i:          (t !== undefined) ? parseDate(t.Inicio_prazo) : null,
           prazo_f:          (t !== undefined) ? parseDate(t.Final_prazo) : null,
-          data:             parseDate(d.Dia_hora),
-          //tempo_analise:    daysBetween(data, (t.Inicio_prazo == undefined) ? new Date() : t.Inicio_prazo)
+          data:             parseDate(d.Dia_hora)
+          //tempo_analise:    daysBetween(data, new Date())
         }
     });
 
@@ -72,6 +72,14 @@ allData.then(data => {
          return mes;
     });
 
+
+    var semanaDim = ndx.dimension(function (d) {
+        var day = d.data.getDay();
+        var name = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+        return day + '.' + name[day];
+    });
+    
+
     var coordenacaoDim = ndx.dimension(function(d){
         return d.setor;
     });
@@ -87,11 +95,12 @@ allData.then(data => {
     var mesGroup            = mesDim.group();
     var coordenacaoGroup    = coordenacaoDim.group();
     var tableGroup          = tableDim.group();
+    var semanaGroup         = semanaDim.group();
 
     charts = [
          mesChart
             .dimension(mesDim)
-            .width(300)
+            .width(500)
             .group(mesGroup)
             .elasticY(true)
           .x(d3.scaleLinear()
@@ -121,7 +130,7 @@ allData.then(data => {
             .group(horaGroup)
             .elasticY(true)
             .options ({
-              'width' : 300,
+              'width' : 500,
               'height' : 200
             })  
           .x(d3.scaleLinear()
@@ -138,8 +147,31 @@ allData.then(data => {
                   'height' : 200
                 })  
               .x(d3.scaleLinear()
-                .domain([-10, 20])) //ate 20 dias
+                .domain([-10, 20])), //ate 20 dias
                 //.rangeRound([0, 10 * 24])); 
+
+
+          semanaChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+            .width(180)
+            .height(180)
+            .margins({top: 20, left: 10, right: 10, bottom: 20})
+            .group(semanaGroup)
+            .dimension(semanaDim)
+            // Assign colors to each value in the x scale domain
+            .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+            .label(function (d) {
+                return d.key.split('.')[1];
+            })
+            .options ({
+              'width' : 400,
+              'height': 200
+            })  
+            // Title sets the row text
+            .title(function (d) {
+                return d.value;
+            })
+            .elasticX(true)
+            .xAxis().ticks(4)    
         ]    
 
 
@@ -151,27 +183,27 @@ allData.then(data => {
        dataTable
             .dimension(tableDim)
             .group(function(d){
-                 var label = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul'];
-                 return label[d.data.getMonth()];
+                 var label = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                 return label[d.data.getMonth()] + "/" + d.data.getFullYear();
             })
             .columns([
                 "id",
                 "nup",
                 "setor",
-                "usuario"
+                "usuario",
+                function(e){
+                    return daysBetween(e.data, e.prazo_f)
+                }
              ])
 
 
     horaChart.margins().left = 50;    
     mesChart.margins().left = 50;   
     vencidosChart.margins().left = 50; 
-
+    semanaChart.margins().left = 50; 
 
 
     dc.renderAll();    
-
-
-
 }) 
 
 
@@ -188,7 +220,7 @@ function nomeDeLogin(nome){
 }
 
 function daysBetween(one, another) {
-  return Math.round((one - another)/8.64e7);
+    return Math.round((one - another)/8.64e7);
 }
 
 function reduzir(mov){
