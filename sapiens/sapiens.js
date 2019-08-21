@@ -187,13 +187,17 @@ allData.then(data => {
                  return label[d.data.getMonth()] + "/" + d.data.getFullYear();
             })
             .columns([
-                "id",
+                "t_id",
                 "nup",
                 "setor",
                 "usuario",
-                function(e){
-                    return daysBetween(e.data, e.prazo_f)
+                 {
+                    label: "prazo",
+                    format: function(e){
+                        return daysBetween(e.data, e.prazo_f)
+                    }
                 }
+                
              ])
 
 
