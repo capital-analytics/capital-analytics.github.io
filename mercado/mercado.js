@@ -1,0 +1,205 @@
+//charts
+var categoriaChart  = dc.rowChart("#categoriaChart"),
+    mesChart        = dc.barChart("#mesChart"),
+    semanaChart     = dc.rowChart('#semanaChart'),
+    horaChart       = dc.barChart("#horaChart"),
+    count           = dc.dataCount("#dataCount"),
+    dataTable       = dc.dataTable('.dc-data-table');
+
+
+
+
+var charts = undefined;
+
+//produto;codigo_barra;label;valor_compra;valor_venda;qtd;pagamento;data_compra
+const vendas = d3.csv("../data/mercado/vendasmercado5.csv",  d => ({
+      produto:           d.produto,
+      categoria:         d.categoria,
+      label:             d.label,
+      compra:            d.valor_compra,
+      venda:             d.valor_venda,
+      //vencimento:        d.data_vencimento,
+      quantidade:        d.qtd,
+      pagamento:         d.pagamento,
+      data:              parseDate(d.data_compra)
+}));
+
+
+vendas.then(data => {
+
+    var ndx = crossfilter(data);
+    var all = ndx.groupAll();
+
+    var categoriaDim = ndx.dimension(function(d){
+        return d.categoria;
+    });
+
+    var horaDim = ndx.dimension(function(d){
+        return d.data.getHours() + d.data.getMinutes() / 60;
+    });
+
+    var mesDim = ndx.dimension(function(d){
+        var mes = d.data.getMonth();
+        var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+         //return mes + '.' + labels[mes];
+         return mes;
+    });
+
+
+    var semanaDim = ndx.dimension(function (d) {
+        var day = d.data.getDay();
+        var name = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+        return day + '.' + name[day];
+    });
+
+    var tableDim = ndx.dimension(function(d){
+        return d.data;
+    });
+
+    var categoriaGroup      = categoriaDim.group();
+    var horaGroup           = horaDim.group(Math.floor);
+    var mesGroup            = mesDim.group();
+    var tableGroup          = tableDim.group();
+    var semanaGroup         = semanaDim.group();
+
+    charts = [
+         mesChart
+            .dimension(mesDim)
+            .width(500)
+            .group(mesGroup)
+            .elasticY(true)
+          .x(d3.scaleLinear()
+            .domain([1, 12])),
+
+
+         horaChart
+            .dimension(horaDim)
+            //.width(500)
+            .group(horaGroup)
+            .elasticY(true)
+            .options ({
+              'width' : 500,
+              'height' : 200
+            })  
+          .x(d3.scaleLinear()
+            .domain([0, 24])
+            .rangeRound([0, 10 * 24])),
+
+          
+          categoriaChart
+            .height(1100)
+            .dimension(categoriaDim)
+            .group(categoriaGroup)
+            .elasticX(true),  
+
+
+          semanaChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+            .width(180)
+            .height(180)
+            .margins({top: 20, left: 10, right: 10, bottom: 20})
+            .group(semanaGroup)
+            .dimension(semanaDim)
+            // Assign colors to each value in the x scale domain
+            .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+            .label(function (d) {
+                return d.key.split('.')[1];
+            })
+            .options ({
+              'width' : 400,
+              'height': 200
+            })  
+            // Title sets the row text
+            .title(function (d) {
+                return d.value;
+            })
+            .elasticX(true)
+            .xAxis().ticks(4)    
+        ]    
+
+
+      count
+        .dimension(ndx)
+        .group(all); 
+
+
+       dataTable
+            .dimension(tableDim)
+            .group(function(d){
+                 var label = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                 return label[d.data.getMonth()] + "/" + d.data.getFullYear();
+            })
+            .columns([
+                "produto",
+                "categoria",
+                "compra",
+                "venda"
+             ])
+
+
+    horaChart.margins().left = 50;    
+    mesChart.margins().left = 50;   
+    semanaChart.margins().left = 50; 
+
+
+    dc.renderAll();    
+}) 
+
+
+window.filter = function(filters) {
+    filters.forEach(function(d, i) { charts[i].filter(d); });
+    dc.renderAll();
+};
+
+function nomeDeLogin(nome){
+   // return nome;
+    let array = nome.trim().split(" ");
+    return array[0] + " " + array[array.length-1];
+
+}
+
+function daysBetween(one, another) {
+    return Math.round((one - another)/8.64e7);
+}
+
+function reduzir(mov){
+    if(mov.length > 80){
+        return mov.substring(0, 80).concat("...");
+    }
+}
+
+ // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
+ /**
+ data no formato 2019-02-08 04:10:43
+ **/
+function parseDate(data){
+
+   // if(data == undefined) return;
+
+    let Y = data.substring(0,4); 
+    let m = data.substring(5,7)-1; //mes comeca com zero
+    let d = data.substring(8,10);
+
+    let h  = data.substring(11,13);
+    let mn = data.substring(14,16);
+    let s  = data.substring(17,19);
+
+    return new Date(Y, m, d, h, mn, s);
+}   
+
+function join(lookupTable, mainTable, lookupKey, mainKey, select) {
+    var l = lookupTable.length,
+        m = mainTable.length,
+        lookupIndex = [],
+        output = [];
+    for (var i = 0; i < l; i++) { // loop through l items
+        var row = lookupTable[i];
+        lookupIndex[row[lookupKey]] = row; // create an index for lookup table
+    }
+    for (var j = 0; j < m; j++) { // loop through m items
+        var y = mainTable[j];
+        var x = lookupIndex[y[mainKey]]; // get corresponding row from lookupTable
+        output.push(select(y, x)); // select only the columns you need
+    }
+    return output;
+};
