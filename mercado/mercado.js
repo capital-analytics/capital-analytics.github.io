@@ -4,7 +4,8 @@ var categoriaChart  = dc.rowChart("#categoriaChart"),
     semanaChart     = dc.rowChart('#semanaChart'),
     horaChart       = dc.barChart("#horaChart"),
     count           = dc.dataCount("#dataCount"),
-    dataTable       = dc.dataTable('.dc-data-table');
+    dataTable       = dc.dataTable('.dc-data-table')
+    vendasBox       = dc.numberDisplay("#vendasBox");
 
 
 
@@ -19,10 +20,24 @@ const vendas = d3.csv("../data/mercado/vendasmercado5.csv",  d => ({
       compra:            d.valor_compra,
       venda:             d.valor_venda,
       //vencimento:        d.data_vencimento,
-      quantidade:        d.qtd,
+      qtd:               d.qtd,
       pagamento:         d.pagamento,
       data:              parseDate(d.data_compra)
 }));
+
+
+var locale = d3.formatLocale({
+    "decimal": ",",
+    "thousands": ".",
+    "currency": ["R$ ", ""],
+    "date": "%m/%d/%Y",
+    "time": "%H:%M:%S",
+    "periods": ["AM", "PM"],
+    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+})
 
 
 vendas.then(data => {
@@ -57,13 +72,29 @@ vendas.then(data => {
         return d.data;
     });
 
+    var vendasDim = ndx.dimension(function(d){
+        return d.qtd;
+    })
+
     var categoriaGroup      = categoriaDim.group();
     var horaGroup           = horaDim.group(Math.floor);
     var mesGroup            = mesDim.group();
     var tableGroup          = tableDim.group();
     var semanaGroup         = semanaDim.group();
 
+    var vendasGroup         = vendasDim.group().reduceSum(function(d){
+                                return d.qtd * d.venda;
+                            });
+
     charts = [
+
+         vendasBox
+            .formatNumber(locale.format("$,.2f"))
+            .dimension(vendasDim)
+            //.valueAccessor(avg)
+            .group(vendasGroup),
+
+    
          mesChart
             .dimension(mesDim)
             .width(500)
@@ -132,8 +163,8 @@ vendas.then(data => {
             .columns([
                 "produto",
                 "categoria",
-                "compra",
-                "venda"
+                "venda",
+                "qtd"
              ])
 
 
