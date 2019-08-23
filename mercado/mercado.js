@@ -151,13 +151,13 @@ vendas.then(data => {
 
 
       count
-        .dimension(ndx)
-        .group(all); 
+        .crossfilter(ndx)
+        .groupAll(all); 
 
 
        dataTable
             .dimension(tableDim)
-            .group(function(d){
+            .section(function(d){
                  var label = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
                  return label[d.data.getMonth()] + "/" + d.data.getFullYear();
             })
