@@ -4,7 +4,7 @@ var categoriaChart  = dc.rowChart("#categoriaChart"),
     semanaChart     = dc.rowChart('#semanaChart'),
     horaChart       = dc.barChart("#horaChart"),
     count           = dc.dataCount("#dataCount"),
-    dataTable       = dc.dataTable('.dc-data-table')
+    dataTable       = dc.dataTable('.dc-data-table'),
     vendasBox       = dc.numberDisplay("#vendasBox");
 
 
@@ -88,13 +88,6 @@ vendas.then(data => {
 
     charts = [
 
-         vendasBox
-            .formatNumber(locale.format("$,.2f"))
-            .dimension(vendasDim)
-            //.valueAccessor(avg)
-            .group(vendasGroup),
-
-    
          mesChart
             .dimension(mesDim)
             .width(500)
@@ -146,7 +139,15 @@ vendas.then(data => {
             })
             .elasticX(true)
             .xAxis().ticks(4)    
-        ]    
+        ]  
+
+
+      
+       vendasBox
+            .formatNumber(locale.format("$,.2f"))
+            .dimension(vendasDim)
+            //.valueAccessor(avg)
+            .group(vendasGroup),    
 
 
       count
@@ -165,7 +166,38 @@ vendas.then(data => {
                 "categoria",
                 "venda",
                 "qtd"
-             ])
+             ]);
+
+
+    function filter(filters) {
+        filters.forEach(function(d, i) { 
+            charts[i].filter(d); 
+        });
+        renderAll();
+    }; 
+
+    var chart = d3.selectAll(".chart")
+      .data(charts)
+      .each(function() { 
+        d3.brush()
+             .on("brush", renderAll)
+             .on("end", renderAll); 
+       });
+
+    // Whenever the brush moves, re-rendering everything.
+    function renderAll() {
+        chart.each(render);
+        //list.each(render);
+        //d3.select("#active").text(formatNumber(all.value()));
+    }
+
+
+
+    function render(method) {
+        d3.select(this).call(method);
+    } 
+
+
 
 
     horaChart.margins().left = 50;    
@@ -177,10 +209,12 @@ vendas.then(data => {
 }) 
 
 
-window.filter = function(filters) {
-    filters.forEach(function(d, i) { charts[i].filter(d); });
-    dc.renderAll();
-};
+
+
+
+
+
+
 
 function nomeDeLogin(nome){
    // return nome;
@@ -198,6 +232,9 @@ function reduzir(mov){
         return mov.substring(0, 80).concat("...");
     }
 }
+
+
+
 
  // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
  /**
