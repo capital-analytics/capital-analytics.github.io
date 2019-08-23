@@ -164,7 +164,12 @@ vendas.then(data => {
             .columns([
                 "produto",
                 "categoria",
-                "venda",
+                {
+                    label: "Venda",
+                    format: function(e){
+                        return locale.format("$,.2f")(e.venda);
+                    }
+                },
                 "qtd"
              ]);
 
