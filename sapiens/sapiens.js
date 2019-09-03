@@ -10,6 +10,22 @@ var usuarioChart    = dc.rowChart("#usuarioChart"),
     dataTable       = dc.dataTable('.dc-data-table');
 
 
+var locale = d3.formatLocale({
+  "decimal": ",",
+  "thousands": ".",
+  "grouping": [3],
+  "currency": ["R$", ""],
+  "dateTime": "%d/%m/%Y %H:%M:%S",
+  "date": "%d/%m/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
+  "shortDays": ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+  "months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+  "shortMonths": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+});
+
+
  //Id;NUP;Tarefa_id;Setor;Usuario;Especie;Dia_hora
 const allData = Promise.all([
      //tarefas
@@ -38,10 +54,16 @@ allData.then(data => {
           movimento:        d.Especie,
           prazo_i:          (t !== undefined) ? parseDate(t.Inicio_prazo) : null,
           prazo_f:          (t !== undefined) ? parseDate(t.Final_prazo) : null,
-          data:             parseDate(d.Dia_hora)
+          data:             parseDate(d.Dia_hora),
+          dataHora:         d.Dia_hora
           //tempo_analise:    daysBetween(data, new Date())
         }
     });
+
+
+    dados = dados.filter(e => {
+        return e.setor.endsWith("MC") || e.setor.endsWith("PROTOCOLO");
+    })
 
 
     var ndx = crossfilter(dados);
@@ -68,7 +90,8 @@ allData.then(data => {
         var mes = d.data.getMonth();
         var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-         //return mes + '.' + labels[mes];
+         //return labels[mes];
+        // labels[d.data.getMonth()]
          return mes;
     });
 
@@ -76,7 +99,7 @@ allData.then(data => {
     var semanaDim = ndx.dimension(function (d) {
         var day = d.data.getDay();
         var name = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-        return day + '.' + name[day];
+        return name[day];
     });
     
 
@@ -103,17 +126,20 @@ allData.then(data => {
             .width(500)
             .group(mesGroup)
             .elasticY(true)
+          .label(function(d) {
+              return d.value;
+          })  
           .x(d3.scaleLinear()
             .domain([1, 12])),
 
         usuarioChart
-            .height(1800)
+            .height(1500)
             .dimension(usuarioDim)
             .group(usuarioGroup)
             .elasticX(true),
 
         setorChart
-            .height(700)
+            .height(250)
             .dimension(coordenacaoDim)
             .group(coordenacaoGroup)
             .elasticX(true),
@@ -160,7 +186,7 @@ allData.then(data => {
             // Assign colors to each value in the x scale domain
             .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
             .label(function (d) {
-                return d.key.split('.')[1];
+                return d.key;
             })
             .options ({
               'width' : 400,
@@ -196,7 +222,8 @@ allData.then(data => {
                     format: function(e){
                         return daysBetween(e.data, e.prazo_f)
                     }
-                }
+                },
+                "dataHora"
                 
              ])
 
@@ -235,8 +262,19 @@ function reduzir(mov){
 
  // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
 function parseDate(data){
+    
+    //formato: 30/07/2019 15:45:43
+    /**
+     var dateFormatSpecifier = '%d-%m-%Y %H:%M:%S';
+     var dateFormat = d3.timeFormat(dateFormatSpecifier);
+     var dateFormatParser = d3.timeParse(dateFormatSpecifier);
+
+     return dateFormatParser(data); **/
+
 
    // if(data == undefined) return;
+
+
 
     let Y = data.substring(6,10); 
     let m = data.substring(3,5)-1; //mes comeca com zero
@@ -246,7 +284,7 @@ function parseDate(data){
     let mn = data.substring(14,16);
     let s  = data.substring(17,19);
 
-    return new Date(Y, m, d, h, mn, s);
+    return new Date(Y, m, d, h, mn, s); 
 }   
 
 function join(lookupTable, mainTable, lookupKey, mainKey, select) {

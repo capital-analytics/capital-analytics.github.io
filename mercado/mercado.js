@@ -3,6 +3,7 @@ var categoriaChart  = dc.rowChart("#categoriaChart"),
     mesChart        = dc.barChart("#mesChart"),
     semanaChart     = dc.rowChart('#semanaChart'),
     horaChart       = dc.barChart("#horaChart"),
+    pagamentoChart  = dc.rowChart("#pagamentoChart"),
     count           = dc.dataCount("#dataCount"),
     dataTable       = dc.dataTable('.dc-data-table'),
     vendasBox       = dc.numberDisplay("#vendasBox");
@@ -74,6 +75,10 @@ vendas.then(data => {
 
     var vendasDim = ndx.dimension(function(d){
         return d.qtd;
+    });
+
+    var pagamentoDim = ndx.dimension(function(d){
+        return d.pagamento;
     })
 
     var categoriaGroup      = categoriaDim.group();
@@ -81,6 +86,7 @@ vendas.then(data => {
     var mesGroup            = mesDim.group();
     var tableGroup          = tableDim.group();
     var semanaGroup         = semanaDim.group();
+    var pagamentoGroup      = pagamentoDim.group();
 
     var vendasGroup         = vendasDim.group().reduceSum(function(d){
                                 return d.qtd * d.venda;
@@ -110,14 +116,6 @@ vendas.then(data => {
             .domain([0, 24])
             .rangeRound([0, 10 * 24])),
 
-          
-          categoriaChart
-            .height(1100)
-            .dimension(categoriaDim)
-            .group(categoriaGroup)
-            .elasticX(true),  
-
-
           semanaChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
             .width(180)
             .height(180)
@@ -125,7 +123,7 @@ vendas.then(data => {
             .group(semanaGroup)
             .dimension(semanaDim)
             // Assign colors to each value in the x scale domain
-            .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+           // .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
             .label(function (d) {
                 return d.key.split('.')[1];
             })
@@ -138,7 +136,30 @@ vendas.then(data => {
                 return d.value;
             })
             .elasticX(true)
-            .xAxis().ticks(4)    
+            .xAxis().ticks(4),      
+
+          
+         categoriaChart
+            .height(1100)
+            .dimension(categoriaDim)
+            .group(categoriaGroup)
+            .elasticX(true),  
+
+
+        pagamentoChart /* dc.rowChart('#day-of-week-chart', 'chartGroup') */
+            .width(320)
+            .height(180)
+            .margins({top: 20, left: 10, right: 10, bottom: 20})
+            .group(pagamentoGroup)
+            .dimension(pagamentoDim)
+            // Assign colors to each value in the x scale domain
+            //.ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef'])
+            .label(function (d) {
+                //console.log(d);
+                return d.pagamento;
+            })
+            .elasticX(true)
+            .xAxis().ticks(4)
         ]  
 
 
@@ -208,6 +229,7 @@ vendas.then(data => {
     horaChart.margins().left = 50;    
     mesChart.margins().left = 50;   
     semanaChart.margins().left = 50; 
+    pagamentoChart.margins().left = 50;
 
 
     dc.renderAll();    
@@ -237,8 +259,6 @@ function reduzir(mov){
         return mov.substring(0, 80).concat("...");
     }
 }
-
-
 
 
  // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
