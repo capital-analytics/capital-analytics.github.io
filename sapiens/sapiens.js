@@ -236,9 +236,7 @@ allData.then(data => {
                     format: function(e){
                         return daysBetween(e.data, e.prazo_f)
                     }
-                },
-                "dataHora"
-                
+                }
              ])
 
 
