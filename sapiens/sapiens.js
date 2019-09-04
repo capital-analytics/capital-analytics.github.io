@@ -10,7 +10,7 @@ var usuarioChart    = dc.rowChart("#usuarioChart"),
     dataTable       = dc.dataTable('.dc-data-table');
 
 
-var locale = d3.formatLocale({
+var locale = d3.timeFormatLocale({
   "decimal": ",",
   "thousands": ".",
   "grouping": [3],
@@ -24,6 +24,10 @@ var locale = d3.formatLocale({
   "months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
   "shortMonths": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 });
+
+
+
+var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 
  //Id;NUP;Tarefa_id;Setor;Usuario;Especie;Dia_hora
@@ -88,11 +92,7 @@ allData.then(data => {
 
     var mesDim = ndx.dimension(function(d){
         var mes = d.data.getMonth();
-        var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-         //return labels[mes];
-        // labels[d.data.getMonth()]
-         return mes;
+        return mes;
     });
 
 
@@ -120,17 +120,31 @@ allData.then(data => {
     var tableGroup          = tableDim.group();
     var semanaGroup         = semanaDim.group();
 
+    var xAxs = d3.scaleLinear()
+              .domain([0, 12]);
+
+
+    function multiFormat(date) {
+      return (d3.timeSecond(date) < date ? formatMillisecond
+          : d3.timeMinute(date) < date ? formatSecond
+          : d3.timeHour(date) < date ? formatMinute
+          : d3.timeDay(date) < date ? formatHour
+          : d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? formatDay : formatWeek)
+          : d3.timeYear(date) < date ? formatMonth
+          : formatYear)(date);
+    }          
+
     charts = [
          mesChart
             .dimension(mesDim)
             .width(500)
             .group(mesGroup)
-            .elasticY(true)
-          .label(function(d) {
-              return d.value;
-          })  
-          .x(d3.scaleLinear()
-            .domain([1, 12])),
+            .elasticY(true) 
+          .x(xAxs)
+          .xAxis()
+          .tickFormat(function(e){
+            return labels[e];
+          }),
 
         usuarioChart
             .height(1500)
@@ -262,19 +276,6 @@ function reduzir(mov){
 
  // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
 function parseDate(data){
-    
-    //formato: 30/07/2019 15:45:43
-    /**
-     var dateFormatSpecifier = '%d-%m-%Y %H:%M:%S';
-     var dateFormat = d3.timeFormat(dateFormatSpecifier);
-     var dateFormatParser = d3.timeParse(dateFormatSpecifier);
-
-     return dateFormatParser(data); **/
-
-
-   // if(data == undefined) return;
-
-
 
     let Y = data.substring(6,10); 
     let m = data.substring(3,5)-1; //mes comeca com zero
