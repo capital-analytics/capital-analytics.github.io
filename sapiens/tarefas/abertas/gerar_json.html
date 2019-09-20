@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <link type="text/css" rel="stylesheet" href="style.css"/>
+
+    <style type="text/css">
+
+.chart {
+  display: block;
+  margin: auto;
+  margin-top: 40px;
+}
+
+text {
+  font-size: 11px;
+}
+
+rect {
+  fill: none;
+}
+
+    </style>
+  </head>
+  <body>
+    <div id="body">
+        <div id="json"></div>      
+    </div>
+    <script src='../../../js/d3.min.js'></script>
+    <script src='../../../js/crossfilter.min.js'></script>
+    <script type="text/javascript">
+      /** Gerador de JSON das tarefas do sapiens. (Solucao temporaria) **/
+
+      /**Id;NUP;Nome;Inicio_prazo;Final_prazo;Setor;Especie **/
+      const tarefas = d3.csv("tarefasAbertas2009.csv",  d => ({
+                id:           d.Id,
+                nup:          d.NUP,
+                usuario:      nomeDeLogin(d.Nome),
+                setor:        d.Setor,
+                prazoFinal:   d.Final_prazo
+       }));
+
+
+      tarefas.then(data => {
+
+
+        data = data.filter(e => {
+          return e.setor.endsWith("MC") || e.setor == "PROTOCOLO";
+        })
+
+         var ndx = crossfilter(data);
+         var all = ndx.groupAll();
+
+          
+
+         var setorDim = ndx.dimension(function(d){
+              return d.setor;
+         }); 
+
+         var setorGroup = setorDim.group();
+         var setores = setorGroup.top(Infinity);
+
+         var usuarioSetorDim = ndx.dimension(function(d){
+              return d.usuario + "**" + d.setor;
+         });
+
+         var usuarioSetorGroup = usuarioSetorDim.group();
+         var usuarios = usuarioSetorGroup.top(Infinity);
+
+
+         var tarefas = [];
+
+
+          setores.forEach(e => {
+              tarefas.push({
+                  key : e.key,
+                  values: getUsuarios(e)
+              })
+          })
+
+          function getUsuarios(e){
+              usuariosTemp = [];
+              usuarios.forEach(u => {
+                      if(e.key == u.key.split("**")[1].trim()){
+                         usuariosTemp.push({
+                              key: u.key.split("**")[0],
+                              value: u.value
+                         }) 
+                      }
+                });
+
+                return usuariosTemp;
+          }
+
+          var div = document.getElementById("json");
+          div.innerText = JSON.stringify(tarefas);
+      });
+
+
+      function nomeDeLogin(nome){
+         // return nome;
+          let array = nome.trim().split(" ");
+          return array[0] + " " + array[array.length-1];
+      }
+      
+    </script>
+  </body>
+</html>
