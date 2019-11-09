@@ -20,6 +20,7 @@ const allData = Promise.all([
 
 
 var charts = undefined;
+var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 
 allData.then(data => {
@@ -43,6 +44,9 @@ allData.then(data => {
         }
     });
 
+    dados = dados.filter(e => {
+        return e.setor.endsWith("MC") || e.setor.endsWith("PROTOCOLO");
+    });
 
     var ndx = crossfilter(dados);
     var all = ndx.groupAll();
@@ -68,7 +72,6 @@ allData.then(data => {
         var mes = d.data.getMonth();
         var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-         //return mes + '.' + labels[mes];
          return mes;
     });
 
@@ -98,28 +101,32 @@ allData.then(data => {
     var semanaGroup         = semanaDim.group();
 
     charts = [
-         mesChart
+        mesChart
             .dimension(mesDim)
             .width(500)
             .group(mesGroup)
-            .elasticY(true)
-          .x(d3.scaleLinear()
-            .domain([0, 12])),
+            .elasticY(true) 
+              .x(d3.scaleLinear()
+              .domain([0, 12]))
+              .xAxis()
+              .tickFormat(function(e){
+                return labels[e];
+              }),
 
         usuarioChart
-            .height(1800)
+            .height(1500)
             .dimension(usuarioDim)
             .group(usuarioGroup)
             .elasticX(true),
 
         setorChart
-            .height(700)
+            .height(250)
             .dimension(coordenacaoDim)
             .group(coordenacaoGroup)
             .elasticX(true),
 
          movimentoChart
-            .height(2800)
+            .height(2500)
             .dimension(movimentoDim)
             .group(movimentoGroup)
             .elasticX(true),
