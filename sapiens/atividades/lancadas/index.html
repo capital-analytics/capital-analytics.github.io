@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <meta charset="utf-8">    
+    <link rel="stylesheet" type="text/css" href="../../css/bootstrap4.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/dc.css"/>
+    <style>
+        .dc-chart g.row text {
+            fill: black;
+        }
+        
+        #monthly-volume-chart g.y {
+            display: none;
+        }
+        #logo {
+            margin-right: 2em;
+            margin-top: 2em;
+        }
+
+        .row{
+             color: #000; 
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="container"> 
+        <h4>Atividades Lançadas</h4>
+        <h5>Dados obtidos no período de 01/01/2019 a 31/08/2019</h5>
+        <a href="tarefas/abertas/index.html"> [Tarefas em aberto] </a>
+        <div class="row">
+           <div class="col">
+                 <div id="mesChart">
+                    <strong>Mês</strong>
+                    <a class="reset" href="javascript:mesChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <div class="col">
+                 <div id="semanaChart">
+                    <strong>Dia da semana</strong>
+                    <a class="reset" href="javascript:semanaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            <div class="col">
+                 <div id="horaChart">
+                    <strong>Hora</strong>
+                    <a class="reset" href="javascript:horaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            <div class="col">
+                 <div id="vencidoChart">
+                    <strong>Prazo</strong>
+                    <a class="reset" href="javascript:vencidosChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            </div> 
+            <div id="setorChart">
+                <strong>Coordenação: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:setorChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <div id="usuarioChart">
+                <strong>Usuário: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <div id="movimentoChart">
+                <strong>Atividade: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:movimentoChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <br/>
+            <div class="row">
+                 <div id="dataCount">
+                    <span class="filter-count"></span> selecionados de <span class="total-count"></span> registros | 
+                    <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                </div>
+
+         <table class="table table-hover dc-data-table"></table>
+        </div>
+        
+    <div>
+    <script src='../../../js/d3.min.js'></script>
+    <script src='../../../js/crossfilter.min.js'></script>
+    <script src='../../../js/dc.min.js'></script>
+    <script src='sapiens.js'></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-145326356-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-145326356-1');
+    </script>
+</body>
+</html>
