@@ -1,3 +1,5 @@
+var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
 const dados = d3.json("data/manifestacoes4.json", d=>({
     registros: d,
 }));
@@ -43,6 +45,51 @@ dados.then(data => {
     var ndx = crossfilter(lista);
     var all = ndx.groupAll();
 
+    //mesDim
+    var mesDim = ndx.dimension(function(d) {
+        return d.data.getMonth();
+    });
+
+    var mesGroup  = mesDim.group();
+
+    var  mesChart = dc.barChart("#mesChart")
+            .dimension(mesDim)
+            .width(500).group(mesGroup)
+            .elasticY(true)
+            .x(d3.scaleLinear().domain([0, 12]))
+            .xAxis().tickFormat(function(e) {
+               return labels[e];
+     })
+
+
+     //dia da semana
+     var semanaDim = ndx.dimension(function (d) {
+        var day = d.data.getDay();
+        var name = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+        return day + '.' + name[day];
+    });
+
+     var semanaGroup  = semanaDim.group(); 
+    
+     var semanaChart  = dc.rowChart('#semanaChart')
+                          .width(180)
+                          .height(180)
+                          .margins({top: 20, left: 10, right: 10, bottom: 20})
+                          .group(semanaGroup)
+                          .dimension(semanaDim)
+                          .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+                          .label(function (d) {
+                                return d.key.split('.')[1];
+                          }).options ({
+                              'width' : 400,
+                              'height': 200
+                           }).title(function (d) {
+                                return d.value;
+                           }).elasticX(true)
+                             .xAxis().ticks(4)
+
+
+    //pecas
     var pecasDim = ndx.dimension(function(d) {
         return d.peca;
     });
@@ -64,7 +111,7 @@ dados.then(data => {
     var respGroup = respDim.group();
 
     var respChart = dc.rowChart("#respChart")
-                      .height(1400)
+                      .height(1200)
                       .dimension(respDim)
                       .group(respGroup)
                       .elasticX(true)
