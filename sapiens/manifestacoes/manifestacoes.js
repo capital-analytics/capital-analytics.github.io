@@ -21,25 +21,26 @@ dados.then(data => {
         return ({
             "nome": x.redator,
             "data": new Date(x.criadoEm.date),
-            "resumo": (x.componentesDigitais[0]) ? x.componentesDigitais[0].highlights : 'n/a',
+            "resumo": (x.componentesDigitais) ? x.componentesDigitais[0].highlights : 'n/a',
             "criacao": x.criadoPor.email,
             "peca": x.tipoDocumento.nome,
             "arquivoId": x.componentesDigitais[0].id,
             "arquivo": x.componentesDigitais[0].fileName,
-            "coordenacao": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.nome : 'n/a',
+            "coordenacao": (x.componentesDigitais[0].highlights) ? convert(x.componentesDigitais[0].highlights.split("\n")[8]) : 'n/a',
+            "juntadas": x.juntadas.length, 
             "setor": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.unidade.sigla : 'outros',
         });
     }).filter(e => {
         return e.nome !== undefined;
     });
 
-    //filtra apenas o ministerio
+    /** filtra apenas o ministerio
     lista = lista.filter(e => {
         return e.setor.endsWith("-MC") 
-    });
+    }); **/
 
     lista = lista.filter(e => {
-        return (e.resumo !== undefined) ? e.resumo.includes("CONSULTORIA JUR&Iacute;DICA JUNTO AO MINIST&Eacute;RIO DA CIDADANIA") : ''
+        return (e.coordenacao) ? e.coordenacao.endsWith("MC") : ''
     });
 
     var ndx = crossfilter(lista);
@@ -124,7 +125,7 @@ dados.then(data => {
     var setorGroup = setorDim.group();
 
     var setorChart = dc.rowChart("#setorChart")
-                       .height(250)
+                       .height(350)
                        .dimension(setorDim)
                        .group(setorGroup)
                        .elasticX(true)
@@ -145,13 +146,18 @@ dados.then(data => {
 
     var dataTable = dc.dataTable('.dc-data-table')
                       .dimension(tableDim)
-                      .columns(["nome", "peca", "coordenacao", 
-                           {
-                            label: "Arquivo",
-                            format: function(e) {
-                                return '<a target="_blank" href="https://sapiens.agu.gov.br/documento/' + e.arquivoId + '">' + e.arquivo + '</a>';
-                            }
-                       }])
+                      .columns(["nome", "peca","juntadas", "coordenacao",{
+                                label: "Arquivo",
+                                format: function(e) {
+                                    return '<a target="_blank" href="https://sapiens.agu.gov.br/documento/' + e.arquivoId + '">' + e.arquivo + '</a>';
+                                }},{
+                                label: "data",
+                                format: function(e) {
+                                    return e.data.toLocaleDateString();
+                                }}
+                       ]).sortBy(function(d) {
+                            return d.data;
+                       })
 
     //count
     var count = dc.dataCount("#dataCount");
@@ -159,3 +165,17 @@ dados.then(data => {
 
     dc.renderAll();
 });
+
+
+function convert(str){
+
+    if(!str) return ''; 
+
+    str = str.replace("COORDENA&Ccedil;&Atilde;O", "COORDENAÇÃO");
+    str = str.replace("LICITA&Ccedil;&Atilde;O", "LICITAÇÃO");
+    str = str.replace("CONV&Ecirc;NIOS", "CONVÊNIOS");
+    str = str.replace("POL&Iacute;TICAS", "POLÍTICAS");
+    str = str.replace("JUR&Iacute;DICA", "JURÍDICA");
+
+    return str;
+}
