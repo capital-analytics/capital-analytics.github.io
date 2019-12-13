@@ -17,7 +17,7 @@ class Population {
     this.finished = false; // Are we finished evolving?
     this.target = p; // Target
     this.mutationRate = m; // Mutation rate
-    this.perfectScore = 1;
+    this.perfectScore = 0.5;
 
     this.best = "";
 
@@ -33,7 +33,7 @@ class Population {
 
   // Fill our fitness array with a value for every member of the population
   calcFitness() {
-    console.log("Fit population...");
+    //console.log("Fit population...");
     for (let i = 0; i < this.population.length; i++) {
       this.population[i].calcFitness(cotacoes);
     }
@@ -95,8 +95,8 @@ class Population {
       }
     }
 
-    this.best = this.population[index].getPhrase();
-    if (worldrecord === this.perfectScore) {
+    this.best = this.population[index].getTrades();
+    if (worldrecord > this.perfectScore) {
       this.finished = true;
     }
   }
@@ -125,7 +125,7 @@ class Population {
 
 
     for (let i = 0; i < displayLimit; i++) {
-      everything += this.population[i].getPhrase() + "<br>";
+      everything += this.population[i].getTrades() + "<br>";
     }
     return everything;
   }

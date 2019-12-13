@@ -32,9 +32,31 @@ class DNA {
     return this.genes.join("");
   }
 
+  getTrades(){
+    var message = "";
+    message += "compras: ";
+    message += this.genes.filter(f => {
+                    return f == 1
+                }).reduce((acc,e)=>{
+                            return (acc + e);
+                });
+
+    message += "; vendas: ";
+    message += this.genes.filter(f => {
+                return f == -1
+            }).reduce((acc,e)=>{
+                        return (acc + e);
+            });  
+
+    //message += "<br/>";                  
+
+    return message;
+    
+  }
+
   // Fitness function (returns floating point % of "correct" trades)
   calcFitness(serie) {
-    console.log("Fit DNA...");
+    //console.log("Fit DNA...");
     let score = 0;
 
     var balance = new Balance(serie, this.genes);

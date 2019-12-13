@@ -53,7 +53,7 @@ function setup() {
 
   //createCanvas(640, 360);
   target = 0.5; //50% de gain
-  popmax = 180;
+  popmax = 100;
   mutationRate = 0.01;
   cotacoes = historico(180);
 
@@ -108,5 +108,5 @@ function displayInfo() {
 
   stats.html(statstext);
 
-  allPhrases.html("All phrases:<br>" + population.allPhrases())
+  allPhrases.html("Trades:<br>" + population.allPhrases())
 }
