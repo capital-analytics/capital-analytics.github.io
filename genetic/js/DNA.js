@@ -17,18 +17,14 @@ function newChar() {
 class DNA {
   constructor(cotacoes) {
     // The genetic sequence
-    this.trades = [];
+    //this.trades = [];
     this.genes = [];
     this.fitness = 0;
-    this.cotacoes = cotacoes;
-    for (let i = 0; i < cotacoes.length; i++) {
+
+    for (i =0; i < cotacoes; i++) {
       this.genes[i] = newChar(); // Pick from range of chars
     }
 
-    //deposito de saldo inicial
-    let x = {};
-        x.saldo = 1000;
-    this.trades[0] = x;
   }
 
   // Converts character array to a String
@@ -37,62 +33,19 @@ class DNA {
   }
 
   // Fitness function (returns floating point % of "correct" trades)
-  calcFitness(target) {
+  calcFitness(serie) {
+    console.log("Fit DNA...");
     let score = 0;
 
-    //calcula o score do gain maior que o investimento
-    if(this.executeTrades() / this.trades[0].saldo > 1){
-      score = (this.getSaldo()/this.trades[0].saldo) / 100;
+    var balance = new Balance(serie, this.genes);
+    balance.execute();
+
+    if(balance.getSaldo() / balance.getSaldoInicial() > 1){
+      score = (balance.getSaldo()/balance.getSaldoInicial()) / 100;
     } 
 
 
     this.fitness = score / target;
-  }
-
-  //testa o gene na serie historica
-  executeTrades(){
-    this.cotacoes.forEach((c, i) =>{
-        //compra
-        if(this.genes[i] == 1){
-         if(this.getSaldo() > 0) {
-           let x = {};
-               x.saldo = this.getSaldo() * (-1);
-               x.moeda = this.getSaldo() / c;
-
-           this.trades.push(x)
-         } 
-        }
-
-        //venda
-        if(this.genes[i] == -1){
-          if(this.getMoedas() > 0) {
-            let x = {};
-                x.saldo = this.getMoedas() * c;
-                x.moeda = this.getMoedas() * (-1);
-            this.trades.push(x)
-          }  
-        }
-    })
-
-   return this.getSaldo();
-
-  }
-
-
-  getSaldo(){
-    return this.trades.map(m => {
-        return m.saldo;
-    }).reduce((acc, e)=> {
-        return (acc + e);
-    })
-  }
-
-  getMoedas(){
-     return this.trades.map(m => {
-        return (m.moeda != undefined) ? m.moeda : 0;
-     }).reduce((acc, e)=> {
-        return (acc + e);
-    })
   }
 
   // Crossover

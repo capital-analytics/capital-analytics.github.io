@@ -43,7 +43,7 @@ function setup() {
   //bestPhrase.position(10,10);
   bestPhrase.class("best");
 
-  allPhrases = createP("All phrases:");
+  allPhrases = createP("Trades: ");
   allPhrases.position(500, 10);
   allPhrases.class("all");
 
@@ -53,12 +53,12 @@ function setup() {
 
   //createCanvas(640, 360);
   target = 0.5; //50% de gain
-  popmax = 2;
+  popmax = 180;
   mutationRate = 0.01;
-  serie = historico(10);
+  cotacoes = historico(180);
 
   // Create a population with a target phrase, mutation rate, and population max
-  population = new Population(target, mutationRate, popmax, serie);
+  population = new Population(target, mutationRate, popmax, cotacoes);
 }
 
 

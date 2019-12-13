@@ -22,17 +22,20 @@ class Population {
     this.best = "";
 
     this.population = [];
+
     for (let i = 0; i < num; i++) {
-      this.population[i] = new DNA(cotacoes); //mesmo tamanho da serie
+      this.population[i] = new DNA(cotacoes.length); //mesmo tamanho da serie
     }
+
     this.matingPool = [];
     this.calcFitness();
   }
 
   // Fill our fitness array with a value for every member of the population
   calcFitness() {
+    console.log("Fit population...");
     for (let i = 0; i < this.population.length; i++) {
-      this.population[i].calcFitness(target);
+      this.population[i].calcFitness(cotacoes);
     }
   }
 
