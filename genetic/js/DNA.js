@@ -37,16 +37,12 @@ class DNA {
     message += "compras: ";
     message += this.genes.filter(f => {
                     return f == 1
-                }).reduce((acc,e)=>{
-                            return (acc + e);
-                });
+                }).length;
 
     message += "; vendas: ";
     message += this.genes.filter(f => {
                 return f == -1
-            }).reduce((acc,e)=>{
-                        return (acc + e);
-            });  
+            }).length;  
 
     //message += "<br/>";                  
 
@@ -59,8 +55,8 @@ class DNA {
     //console.log("Fit DNA...");
     let score = 0;
 
-    var balance = new Balance(serie, this.genes);
-    balance.execute();
+    var balance = new Balance(serie, this.genes, 5000);
+    balance.executarTrades(0.7);
 
     if(balance.getSaldo() / balance.getSaldoInicial() > 1){
       score = (balance.getSaldo()/balance.getSaldoInicial()) / 100;
@@ -68,6 +64,10 @@ class DNA {
 
 
     this.fitness = score / target;
+  }
+
+  getTotalTrades(){
+    //return balance.getTradesExecutados();
   }
 
   // Crossover

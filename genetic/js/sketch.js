@@ -99,14 +99,17 @@ function displayInfo() {
   // Display current status of population
   let answer = population.getBest();
 
-  bestPhrase.html("Best phrase:<br>" + answer);
+  bestPhrase.html("Melhor gene:<br>" + answer);
 
   let statstext = "total generations:  " + population.getGenerations() + "<br>";
   statstext += "average fitness:       " + nf(population.getAverageFitness()) + "<br>";
   statstext += "total population:      " + popmax + "<br>";
-  statstext += "mutation rate:         " + floor(mutationRate * 100) + "%";
+  statstext += "mutation rate:         " + floor(mutationRate * 100) + "% <p/>";
+
+  statstext += "Saldo final:         " + floor(mutationRate * 100) + "% <br/>";
+  statstext += "Trades executados:   " + population.tradesExecutados() + "<br/>";
 
   stats.html(statstext);
 
-  allPhrases.html("Trades:<br>" + population.allPhrases())
+  allPhrases.html("População:<br>" + population.allPhrases())
 }

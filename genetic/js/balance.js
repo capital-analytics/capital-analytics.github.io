@@ -1,40 +1,53 @@
 class Balance {
 
-    constructor(cotacoes, genes) {
+    constructor(cotacoes, genes, valor) {
         this.cotacoes = cotacoes;
         this.genes = genes;
-        
+
+        this.depositoInicial(valor);
+        //this.execute();
+    }
+
+    depositoInicial(valor) {
         let x = {};
-            x.saldo = 1000;
+        x.saldo = valor;
         this.trades = [x];
     }
 
     //testa o gene na serie historica
-    execute() {
+    executarTrades(tx) {
         this.cotacoes.forEach((c,i)=>{
             //compra
             if (this.genes[i] == 1) {
-                if (this.getSaldo() > 0) {
-                    let x = {};
-                        x.saldo = this.getSaldo() * (-1);
-                        x.moeda = this.getSaldo() / c;
-
-                    this.trades.push(x)
-                }
+                this.executarCompra(c, tx)
             }
 
             //venda
             if (this.genes[i] == -1) {
-                if (this.getMoedas() > 0) {
-                    let x = {};
-                        x.saldo = this.getMoedas() * c;
-                        x.moeda = this.getMoedas() * (-1);
-                    this.trades.push(x)
-                }
+                this.executarVenda(c, tx);
             }
         })
 
-       // return this.getSaldo();
+        // return this.getSaldo();
+    }
+
+    executarCompra(preco, taxa) {
+        if (this.getSaldo() > 0) {
+            let x = {};
+            x.saldo = (this.getSaldo() * (1 - taxa/100)) * (-1);
+            x.moeda = x.saldo * (-1) / preco;
+
+            this.trades.push(x)
+        }
+    }
+
+    executarVenda(preco, taxa){
+        if (this.getMoedas() > 0) {
+            let x = {};
+            x.saldo = (this.getMoedas() * (1 - taxa/100)) * preco;
+            x.moeda = this.getMoedas() * (-1);
+            this.trades.push(x)
+        }
     }
 
     getSaldo() {
@@ -53,8 +66,11 @@ class Balance {
         })
     }
 
-
-    getSaldoInicial(){
+    getSaldoInicial() {
         return this.trades[0].saldo;
+    }
+
+    getTradesExecutados(){
+        return this.trades.length;
     }
 }

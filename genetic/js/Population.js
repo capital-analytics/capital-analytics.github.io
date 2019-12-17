@@ -29,6 +29,7 @@ class Population {
 
     this.matingPool = [];
     this.calcFitness();
+    this.tradesExecutados();
   }
 
   // Fill our fitness array with a value for every member of the population
@@ -36,6 +37,12 @@ class Population {
     //console.log("Fit population...");
     for (let i = 0; i < this.population.length; i++) {
       this.population[i].calcFitness(cotacoes);
+    }
+  }
+
+  tradesExecutados(){
+    for (let i = 0; i < this.population.length; i++) {
+      this.population[i].getTotalTrades();
     }
   }
 
@@ -121,7 +128,7 @@ class Population {
   allPhrases() {
     let everything = "";
 
-    let displayLimit = min(this.population.length, 50);
+    let displayLimit = min(this.population.length, 10);
 
 
     for (let i = 0; i < displayLimit; i++) {
