@@ -1,6 +1,6 @@
 var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-const dados = d3.json("data/response.json", d=>({
+const dados = d3.json("data/manifestacoes4.json", d=>({
     registros: d,
 }));
 
@@ -9,13 +9,14 @@ var grid = [];
 dados.then(data => {
     data.forEach((e,i)=>{
         if (e[i] !== undefined) {
-            e[i].result.records.forEach(r=>{
+            e[i][0].result.records.forEach(r=>{
                 grid.push(r);
             })
         }
     })
 
     //console.log(grid);  
+
     var lista = grid.map(x=>{
         return ({
             "nome": x.redator,
@@ -25,7 +26,7 @@ dados.then(data => {
             "peca": x.tipoDocumento.nome,
             "arquivoId": x.componentesDigitais[0].id,
             "arquivo": x.componentesDigitais[0].fileName,
-            "coordenacao": (x.componentesDigitais[0].highlights) ? convert(x.componentesDigitais[0].highlights.split("\n")[8]) : 'n/a',
+            "coordenacao": getCoordenacao(x.componentesDigitais[0].highlights),
             "juntadas": x.juntadas.length, 
             "setor": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.unidade.sigla : 'outros',
         });
@@ -39,7 +40,7 @@ dados.then(data => {
     }); **/
 
     lista = lista.filter(e => {
-        return (e.coordenacao) ? e.coordenacao.endsWith("MC") : ''
+        return e.coordenacao.endsWith("MC") ||  e.coordenacao.endsWith("MINC")
     });
 
     var ndx = crossfilter(lista);
@@ -124,7 +125,7 @@ dados.then(data => {
     var setorGroup = setorDim.group();
 
     var setorChart = dc.rowChart("#setorChart")
-                       .height(350)
+                       .height(1350)
                        .dimension(setorDim)
                        .group(setorGroup)
                        .elasticX(true)
@@ -177,4 +178,22 @@ function convert(str){
     str = str.replace("JUR&Iacute;DICA", "JURÍDICA");
 
     return str;
+}
+
+
+function getCoordenacao(x){
+
+    if(x == undefined) return ("n/a");
+    
+    let coordenacao = x.split("\n\n");
+
+    for(let i=0; i<=coordenacao.length; i++){
+         if(coordenacao[i] != undefined){
+            if(coordenacao[i].endsWith("MC") || coordenacao[i].endsWith("MINC") || coordenacao[i].endsWith("PROTOCOLO")){
+                return convert(coordenacao[i]);
+            }
+         }
+     }
+
+     return 'n/a';
 }
