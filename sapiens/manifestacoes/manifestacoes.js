@@ -1,6 +1,6 @@
 var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-const dados = d3.json("data/manifestacoes4.json", d=>({
+const dados = d3.json("data/response.json", d=>({
     registros: d,
 }));
 
@@ -9,14 +9,13 @@ var grid = [];
 dados.then(data => {
     data.forEach((e,i)=>{
         if (e[i] !== undefined) {
-            e[i][0].result.records.forEach(r=>{
+            e[i].result.records.forEach(r=>{
                 grid.push(r);
             })
         }
     })
 
     //console.log(grid);  
-
     var lista = grid.map(x=>{
         return ({
             "nome": x.redator,
