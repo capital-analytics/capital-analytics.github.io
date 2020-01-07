@@ -1,21 +1,69 @@
 var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-const dados = d3.json("data/manifestacoes4.json", d=>({
+const dados = d3.json("data/response.json", d=>({
     registros: d,
 }));
 
 var grid = [];
 
+
+/**
+var coordenacoes = [
+    {nome: 'GUSTAVO NABUCO MACHADO',            setor: 'GABINETE - MC'},
+    {nome: 'GERALDINE LEMOS TORRES',            setor: 'GABINETE - MC'},
+    {nome: 'KARINE BERBIGIER RIBAS',            setor: 'GABINETE - MC'},
+    {nome: 'IVAN SANTOS NUNES',                 setor: 'GABINETE - MC'},
+    {nome: 'ANDRÉ FRAGA FERREIRA',              setor: 'GABINETE - MC'},
+    {nome: 'MARCELA ALMEIDA MARTINS ARRUDA',    setor: 'GABINETE - MC'},
+    {nome: 'VANESSA MAZALI',                    setor: 'GABINETE - MC'},
+    {nome: 'SIBELE REGINA LUZ GRECCO',          setor: 'GABINETE - MC'},
+    {nome: 'LARISSA FERNANDES NOGUEIRA DA GAMA',setor: 'GABINETE - MC'},
+    {nome: 'VANESSA MAZALI',                    setor: 'GABINETE - MC'},
+    {nome: 'SIBELE REGINA LUZ GRECCO',          setor: 'GABINETE - MC'},
+    {nome: 'LARISSA FERNANDES NOGUEIRA DA GAMA',setor: 'GABINETE - MC'},
+    {nome: 'LESLEI LESTER DOS ANJOS MAGALHÃES', setor: 'GABINETE - MC'},
+
+    {nome: 'WILLIAM ANDERSON ALVES OLIVINDO',   setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS SOCIAIS - MC'},
+    {nome: 'IVANA PINHEIRO COELHO NOGUEIRA',    setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS SOCIAIS - MC'},
+    {nome: 'HELANE MEDEIROS ALMEIDA BARROS',    setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS SOCIAIS - MC'},
+    {nome: 'RICARDO CASSIANO DE SOUZA ROSA',    setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS SOCIAIS - MC'},
+    {nome: 'DANIEL DEMONTE MOREIRA',            setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS SOCIAIS - MC'},
+
+    {nome: 'GUSTAVO ALMEIDA DIAS',                  setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'DANIELA GUIMARÃES GOULART',             setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'JOSÉ SOLINO NETO',                      setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'ALESSANDRO RODRIGUES GOMES DA SILVA',   setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'JOÃO JOSÉ BERREDO DA SILVA FILHO',      setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'MARCELA ALMEIDA MARTINS ARRUDA',        setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+    {nome: 'LESLEI LESTER DOS ANJOS MAGALHÃES',     setor: 'COORDENAÇÃO-GERAL DE CONVÊNIOS E PARCERIAS - MC'},
+
+    {nome: 'LIANA ANTERO DE MELO',                     setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+    {nome: 'CAROLINE MARINHO BOAVENTURA SANTOS',       setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+    {nome: 'JOSÉ NILSON CARNEIRO ALBUQUERQUE FILHO',   setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+    {nome: 'JULIO CÉSAR OBA',                          setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+    {nome: 'LESLEI LESTER DOS ANJOS MAGALHÃES',        setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+    {nome: 'MARCELA ALMEIDA MARTINS ARRUDA',           setor: 'COORDENAÇÃO-GERAL DE CONTRATOS, LICITAÇÃO E PESSOAL - MC'},
+
+    {nome: 'EDUARDO MAGALHÃES TEIXEIRA',               setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS CULTURAIS - MC'},
+    {nome: 'MARIA IZABEL DE CASTRO GAROTTI',           setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS CULTURAIS - MC'},
+    {nome: 'DANIELLE JANDIROBA TELLEZ',                setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS CULTURAIS - MC'},
+    {nome: 'RODRIGO PICANCO FACCI',                    setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS CULTURAIS - MC'},
+    {nome: 'IVAN SANTOS NUNES',                        setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS CULTURAIS - MC'},
+
+    {nome: 'SIBELE REGINA LUZ GRECCO',                 setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS ESPORTIVOS - MC'},
+    {nome: 'RENATA RAPOLD MELLO MATOS',                setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS ESPORTIVOS - MC'},
+    {nome: 'KELLY REINA DE CARVALHO',                  setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS ESPORTIVOS - MC'},
+    {nome: 'MICHELE GOEBEL PILLON',                    setor: 'COORDENAÇÃO-GERAL DE ASSUNTOS ESPORTIVOS - MC'}
+]; **/
+
 dados.then(data => {
-    data.forEach((e,i)=>{
-        if (e[i] !== undefined) {
-            e[i][0].result.records.forEach(r=>{
+    data.forEach((d,i)=>{
+        d.forEach(f => {
+            f.result.records.forEach(r=>{
                 grid.push(r);
             })
-        }
+        })
     })
-
-    //console.log(grid);  
 
     var lista = grid.map(x=>{
         return ({
@@ -26,21 +74,16 @@ dados.then(data => {
             "peca": x.tipoDocumento.nome,
             "arquivoId": x.componentesDigitais[0].id,
             "arquivo": x.componentesDigitais[0].fileName,
-            "coordenacao": getCoordenacao(x.componentesDigitais[0].highlights),
+            "coordenacao": getCoordenacao(x.componentesDigitais[0]),
             "juntadas": x.juntadas.length, 
-            "setor": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.unidade.sigla : 'outros',
+            //"setor": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.unidade.sigla : 'outros',
         });
     }).filter(e => {
         return e.nome !== undefined;
     });
 
-    /** filtra apenas o ministerio
     lista = lista.filter(e => {
-        return e.setor.endsWith("-MC") 
-    }); **/
-
-    lista = lista.filter(e => {
-        return e.coordenacao.endsWith("MC") ||  e.coordenacao.endsWith("MINC")
+        return  e.coordenacao.toString().endsWith("-MC") || e.coordenacao.toString().endsWith("- MC")
     });
 
     var ndx = crossfilter(lista);
@@ -51,9 +94,9 @@ dados.then(data => {
         return d.data.getMonth();
     });
 
-    var mesGroup  = mesDim.group();
+    var mesGroup = mesDim.group();
 
-    var  mesChart = dc.barChart("#mesChart")
+    var mesChart = dc.barChart("#mesChart")
             .dimension(mesDim)
             .width(500).group(mesGroup)
             .elasticY(true)
@@ -99,7 +142,7 @@ dados.then(data => {
 
     //dimensao de mj
     var pecasChart = dc.rowChart("#pecasChart")
-                       .height(320)
+                       .height(420)
                        .dimension(pecasDim)
                        .group(pecasGroup)
                        .elasticX(true)
@@ -112,7 +155,7 @@ dados.then(data => {
     var respGroup = respDim.group();
 
     var respChart = dc.rowChart("#respChart")
-                      .height(1200)
+                      .height(2200)
                       .dimension(respDim)
                       .group(respGroup)
                       .elasticX(true)
@@ -146,7 +189,7 @@ dados.then(data => {
 
     var dataTable = dc.dataTable('.dc-data-table')
                       .dimension(tableDim)
-                      .columns(["nome", "peca","juntadas", "coordenacao",{
+                      .columns(["nome", "peca", "coordenacao",{
                                 label: "Arquivo",
                                 format: function(e) {
                                     return '<a target="_blank" href="https://sapiens.agu.gov.br/documento/' + e.arquivoId + '">' + e.arquivo + '</a>';
@@ -181,19 +224,25 @@ function convert(str){
 }
 
 
-function getCoordenacao(x){
+function getCoordenacao(resumo){
+    if(!resumo.highlights) return '';
+    var res = resumo.highlights.split("\n\n");
+    for(let i=0; i<res.length; i++){
+        if(res[i].endsWith("MC") ){
+            return convert(res[i]);
+        }
+    }
 
-    if(x == undefined) return ("n/a");
-    
-    let coordenacao = x.split("\n\n");
-
-    for(let i=0; i<=coordenacao.length; i++){
-         if(coordenacao[i] != undefined){
-            if(coordenacao[i].endsWith("MC") || coordenacao[i].endsWith("MINC") || coordenacao[i].endsWith("PROTOCOLO")){
-                return convert(coordenacao[i]);
-            }
-         }
-     }
-
-     return 'n/a';
+    return "n/a";
 }
+
+/**
+function getCoordenacao(nome){
+    return coordenacoes.filter(f => {
+        return f.nome == nome
+    }).map(m => {
+        return m.setor;
+    })
+}**/
+
+
