@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
+        <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
+    </head>
+    <body>
+        <div id="usuarioChart">
+            <strong>Cidade: </strong>
+            <span class="reset" style="display:none;">
+                <span class="filter"></span>
+            </span>
+            <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;">resetar</a>
+            <div class="clearfix"></div>
+        </div>
+        <script src='../js/d3.min.js'></script>
+        <script src='../js/crossfilter.min.js'></script>
+        <script src='../js/dc.min.js'></script>
+        <script src="mercadoLivre.js"></script>
+        <script>
+            getDataML(500).then(data=>{
+                var ndx = crossfilter(data);
+                var all = ndx.groupAll();
+
+                var usuarioDim = ndx.dimension(function(d) {
+                    return d.address.state_name;
+                });
+
+                var usuarioGroup = usuarioDim.group();
+
+                dc.rowChart("#usuarioChart").height(500).dimension(usuarioDim).group(usuarioGroup).elasticX(true)
+
+
+                 dc.renderAll(); 
+
+            })
+        </script>
+    </body>
+</html>
