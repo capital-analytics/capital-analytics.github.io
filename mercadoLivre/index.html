@@ -5,46 +5,64 @@
         <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
         <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
         <style>
-          #vendas {
-            background: orange;
-            width: 200px;
-            font-size: 64px;
-            text-align: center;
-            line-height: normal;
-          }
+            #vendas {
+                background: orange;
+                width: 200px;
+                font-size: 64px;
+                text-align: center;
+                line-height: normal;
+            }
         </style>
     </head>
     <body>
-
         <div class="container">
-         <div class="row">
-            <div class="col">
-              <div class="card">
-                <h5 class="card-header">Cidade</h5>
-                <div class="card-body">
-                     <div id="usuarioChart"></div>
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Cidade</h5>
+                        <div class="card-body">
+                            <div id="usuarioChart"></div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-            <div class="col">
-              <div class="card">
-                <h5 class="card-header">Top5</h5>
-                <div class="card-body">
-                    <div id="top5Chart"></div>
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Top5</h5>
+                        <div class="card-body">
+                            <div id="top5Chart"></div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
-      </div>
-        <div class="row">
-          <div id="dataCount">
-              <span class="filter-count"></span>
-              selecionados de <span class="total-count"></span>
-              registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
-          </div>
-          <table class="table table-hover dc-data-table"></table>
-      </div>
-    </div>
-
+            <br/>
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Volume de vendas</h5>
+                        <div class="card-body">
+                            <div id="volumeChart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Vendas por unidade</h5>
+                        <div class="card-body">
+                            <div id="vendasChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div id="dataCount">
+                    <span class="filter-count"></span>
+                    selecionados de <span class="total-count"></span>
+                    registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                </div>
+                <table class="table table-hover dc-data-table"></table>
+            </div>
+        </div>
         <script src='../js/d3.min.js'></script>
         <script src='../js/crossfilter.min.js'></script>
         <script src='../js/dc.min.js'></script>
@@ -52,7 +70,7 @@
         <script>
             //celular MLB1055
             //cervejas MLB194799
-            getDataML('MLB194799',1000).then(data=>{
+            getDataML('MLB1263', 1000).then(data=>{
 
                 console.log(data[0]);
 
@@ -65,86 +83,80 @@
 
                 var cidadeGroup = cidadeDim.group();
 
-                dc.rowChart("#usuarioChart")
-                  .height(400)
-                  .dimension(cidadeDim)
-                  .group(cidadeGroup)
-                  .elasticX(true)
+                dc.rowChart("#usuarioChart").height(400).dimension(cidadeDim).group(cidadeGroup).elasticX(true)
 
-                var top5Dim = ndx.dimension(function(d){
+                var top5Dim = ndx.dimension(function(d) {
                     //return d.nome;
-                    let n = d.title.split(" ").filter(f => f.length > 2);
-                    return n[0] +" "+ n[1];
+                    let n = d.title.split(" ").filter(f=>f.length > 2);
+                    return n[0] + " " + n[1];
 
                 });
 
                 var top5Group = getTops(top5Dim.group());
 
-                  dc.rowChart('#top5Chart')
-                    .dimension(top5Dim)
-                    .height(400)
-                    .group(top5Group)
-                    // Assign colors to each value in the x scale domain
-                    .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-                    .label(function (d) {
-                        return d.key;
-                    }).title(function (d) {
-                        return d.value;
-                    }).elasticX(true)
-                    .xAxis().ticks(4) 
+                dc.rowChart('#top5Chart').dimension(top5Dim).height(400).group(top5Group)// Assign colors to each value in the x scale domain
+                .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
+                    return d.key;
+                }).title(function(d) {
+                    return d.value;
+                }).elasticX(true)
+                  .xAxis()
+                  .ticks(4)
 
 
-
-                /** 
-                 var vendasDim = ndx.dimension(function(d) {
-                    return d.price * d.sold_quantity;
+                //vendas
+                var vendasDim = ndx.dimension(function(d) {
+                    return d.sold_quantity;
                 });
 
-                var vendasGroup = vendasDim.group();
+                var vendasGroup = getTops(vendasDim.group());
 
-                dc.numberDisplay("#vendas")
-                  .formatNumber(d3.format(".5s"))
+                dc.rowChart('#vendasChart')
                   .dimension(vendasDim)
-                  .group(vendasGroup);**/
-  
+                  .height(400)
+                  .group(vendasGroup)// Assign colors to each value in the x scale domain
+                  .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+                  .label(function(d) {
+                    return d.key;
+                }).title(function(d) {
+                    return d.value;
+                }).elasticX(true)
+                  .xAxis()
+                  .ticks(4)  
 
 
-                var total = data.map(m => {
-                    return m.price * m.sold_quantity; //* m.available_quantity;
-                }).reduce((acc, v) => {
-                    return acc + v;
+                //grid                           
+                var tableDim = ndx.dimension(function(d) {
+                    return d;
+                });
+
+                var tableGroup = tableDim.group();
+
+                dc.dataTable('.dc-data-table').dimension(tableDim).columns(["id", {
+                    label: "Produto",
+                    format: function(e) {
+                        return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
+                    }
+                }, "price", "sold_quantity", {
+                    label: "Lucro",
+                    format: function(e) {
+                        return 'R$ ' + Number(e.price * e.sold_quantity).toFixed(2);
+                    }
+                }, {
+                    label: "Frete Grátis",
+                    format: function(e) {
+                        return e.shipping.free_shipping ? 'sim' : 'não'
+                    }
+                }]).sortBy(function(d) {
+                    return -d.sold_quantity;
                 })
 
-                console.log(">>", total);
+                //count(*)      
+                dc.dataCount("#dataCount").dimension(ndx).group(all);
 
-              //grid                           
-              var tableDim = ndx.dimension(function(d) {
-                  return d;
-              });
-
-              var tableGroup = tableDim.group();
-
-              dc.dataTable('.dc-data-table')
-                .dimension(tableDim)
-                .columns(["id", {
-                  label: "Produto",
-                  format: function(e) {
-                      return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
-                  }}, "price", "sold_quantity", {
-                      label: "Lucro",
-                      format: function(e) {
-                          return 'R$ '+ Number(e.price * e.sold_quantity).toFixed(2);
-                      }}
-                  ]).sortBy(function(d) {
-                          return -d.sold_quantity;
-                     }) 
-                  
-            //count(*)      
-            dc.dataCount("#dataCount")
-              .dimension(ndx).group(all); 
-
-                dc.renderAll(); 
-            })
+                dc.renderAll();
+            }
+            )
         </script>
     </body>
 </html>
