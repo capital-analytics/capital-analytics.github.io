@@ -4,36 +4,146 @@
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
         <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
+        <style>
+          #vendas {
+            background: orange;
+            width: 200px;
+            font-size: 64px;
+            text-align: center;
+            line-height: normal;
+          }
+        </style>
     </head>
     <body>
-        <div id="usuarioChart">
-            <strong>Cidade: </strong>
-            <span class="reset" style="display:none;">
-                <span class="filter"></span>
-            </span>
-            <a class="reset" href="javascript:usuarioChart.filterAll(); dc.redrawAll();" style="display:none;">resetar</a>
-            <div class="clearfix"></div>
-        </div>
+
+        <div class="container">
+         <div class="row">
+            <div class="col">
+              <div class="card">
+                <h5 class="card-header">Cidade</h5>
+                <div class="card-body">
+                     <div id="usuarioChart"></div>
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="card">
+                <h5 class="card-header">Top5</h5>
+                <div class="card-body">
+                    <div id="top5Chart"></div>
+                </div>
+              </div>
+            </div>
+      </div>
+        <div class="row">
+          <div id="dataCount">
+              <span class="filter-count"></span>
+              selecionados de <span class="total-count"></span>
+              registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+          </div>
+          <table class="table table-hover dc-data-table"></table>
+      </div>
+    </div>
+
         <script src='../js/d3.min.js'></script>
         <script src='../js/crossfilter.min.js'></script>
         <script src='../js/dc.min.js'></script>
         <script src="mercadoLivre.js"></script>
         <script>
-            getDataML(500).then(data=>{
+            //celular MLB1055
+            //cervejas MLB194799
+            getDataML('MLB194799',1000).then(data=>{
+
+                console.log(data[0]);
+
                 var ndx = crossfilter(data);
                 var all = ndx.groupAll();
 
-                var usuarioDim = ndx.dimension(function(d) {
+                var cidadeDim = ndx.dimension(function(d) {
                     return d.address.state_name;
                 });
 
-                var usuarioGroup = usuarioDim.group();
+                var cidadeGroup = cidadeDim.group();
 
-                dc.rowChart("#usuarioChart").height(500).dimension(usuarioDim).group(usuarioGroup).elasticX(true)
+                dc.rowChart("#usuarioChart")
+                  .height(400)
+                  .dimension(cidadeDim)
+                  .group(cidadeGroup)
+                  .elasticX(true)
+
+                var top5Dim = ndx.dimension(function(d){
+                    //return d.nome;
+                    let n = d.title.split(" ").filter(f => f.length > 2);
+                    return n[0] +" "+ n[1];
+
+                });
+
+                var top5Group = getTops(top5Dim.group());
+
+                  dc.rowChart('#top5Chart')
+                    .dimension(top5Dim)
+                    .height(400)
+                    .group(top5Group)
+                    // Assign colors to each value in the x scale domain
+                    .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
+                    .label(function (d) {
+                        return d.key;
+                    }).title(function (d) {
+                        return d.value;
+                    }).elasticX(true)
+                    .xAxis().ticks(4) 
 
 
-                 dc.renderAll(); 
 
+                /** 
+                 var vendasDim = ndx.dimension(function(d) {
+                    return d.price * d.sold_quantity;
+                });
+
+                var vendasGroup = vendasDim.group();
+
+                dc.numberDisplay("#vendas")
+                  .formatNumber(d3.format(".5s"))
+                  .dimension(vendasDim)
+                  .group(vendasGroup);**/
+  
+
+
+                var total = data.map(m => {
+                    return m.price * m.sold_quantity; //* m.available_quantity;
+                }).reduce((acc, v) => {
+                    return acc + v;
+                })
+
+                console.log(">>", total);
+
+              //grid                           
+              var tableDim = ndx.dimension(function(d) {
+                  return d;
+              });
+
+              var tableGroup = tableDim.group();
+
+              dc.dataTable('.dc-data-table')
+                .dimension(tableDim)
+                .columns(["id", {
+                  label: "Produto",
+                  format: function(e) {
+                      return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
+                  }}, "price", "sold_quantity", {
+                      label: "Lucro",
+                      format: function(e) {
+                          return 'R$ '+ Number(e.price * e.sold_quantity).toFixed(2);
+                      }}
+                  ]).sortBy(function(d) {
+                          return -d.sold_quantity;
+                     }) 
+                  
+            //count(*)      
+            dc.dataCount("#dataCount")
+              .dimension(ndx).group(all); 
+
+                dc.renderAll(); 
             })
         </script>
     </body>
