@@ -12,6 +12,20 @@
                 text-align: center;
                 line-height: normal;
             }
+
+            .dc-text-filter-input {
+                display: block;
+                width: 100%;
+                padding: .375rem .75rem;
+                font-size: 1rem;
+                line-height: 1.5;
+                color: #495057;
+                background-color: #fff;
+                background-clip: padding-box;
+                border: 1px solid #ced4da;
+                border-radius: .25rem;
+                transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            }
         </style>
     </head>
     <body>
@@ -55,11 +69,19 @@
             </div>
             <br/>
             <div class="row">
-                <div id="dataCount">
-                    <span class="filter-count"></span>
-                    selecionados de <span class="total-count"></span>
-                    registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                <div class="col">
+                    <div id="search" placeholder="filtro"></div>
                 </div>
+                <div class="col">
+                    <div id="dataCount">
+                        <span class="filter-count"></span>
+                        selecionados de <span class="total-count"></span>
+                        registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
                 <table class="table table-hover dc-data-table"></table>
             </div>
         </div>
@@ -70,6 +92,8 @@
         <script>
             //celular MLB1055
             //cervejas MLB194799
+            //cosmeticos MLB1263
+            //informatica MLB1648
             getDataML('MLB1263', 1000).then(data=>{
 
                 console.log(data[0]);
@@ -99,10 +123,7 @@
                     return d.key;
                 }).title(function(d) {
                     return d.value;
-                }).elasticX(true)
-                  .xAxis()
-                  .ticks(4)
-
+                }).elasticX(true).xAxis().ticks(4)
 
                 //vendas
                 var vendasDim = ndx.dimension(function(d) {
@@ -111,28 +132,24 @@
 
                 var vendasGroup = getTops(vendasDim.group());
 
-                dc.rowChart('#vendasChart')
-                  .dimension(vendasDim)
-                  .height(400)
-                  .group(vendasGroup)// Assign colors to each value in the x scale domain
-                  .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
-                  .label(function(d) {
+                dc.rowChart('#vendasChart').dimension(vendasDim).height(400).group(vendasGroup)// Assign colors to each value in the x scale domain
+                .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
                     return d.key;
                 }).title(function(d) {
                     return d.value;
-                }).elasticX(true)
-                  .xAxis()
-                  .ticks(4)  
-
+                }).elasticX(true).xAxis().ticks(4)
 
                 //grid                           
                 var tableDim = ndx.dimension(function(d) {
-                    return d;
+                    return d.title;
                 });
 
                 var tableGroup = tableDim.group();
 
-                dc.dataTable('.dc-data-table').dimension(tableDim).columns(["id", {
+                dc.textFilterWidget("#search").dimension(tableDim);
+
+                var i = 0;
+                dc.dataTable('.dc-data-table').showSections(true).dimension(tableDim).columns(["id", {
                     label: "Produto",
                     format: function(e) {
                         return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
@@ -149,7 +166,9 @@
                     }
                 }]).sortBy(function(d) {
                     return -d.sold_quantity;
-                })
+                }).on('renderlet', function(c) {
+                    i = 0;
+                });
 
                 //count(*)      
                 dc.dataCount("#dataCount").dimension(ndx).group(all);
