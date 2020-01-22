@@ -31,20 +31,20 @@ class Balance {
         // return this.getSaldo();
     }
 
-    executarCompra(preco, taxa) {
+    executarCompra(cotacao, taxa) {
         if (this.getSaldo() > 0) {
             let x = {};
             x.saldo = (this.getSaldo() * (1 - taxa/100)) * (-1);
-            x.moeda = x.saldo * (-1) / preco;
+            x.moeda = x.saldo * (-1) / cotacao.close;
 
             this.trades.push(x)
         }
     }
 
-    executarVenda(preco, taxa){
+    executarVenda(cotacao, taxa){
         if (this.getMoedas() > 0) {
             let x = {};
-            x.saldo = (this.getMoedas() * (1 - taxa/100)) * preco;
+            x.saldo = (this.getMoedas() * (1 - taxa/100)) * cotacao.close;
             x.moeda = this.getMoedas() * (-1);
             this.trades.push(x)
         }
