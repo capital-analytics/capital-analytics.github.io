@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
+        <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
+        <style>
+            #vendas {
+                background: orange;
+                width: 200px;
+                font-size: 64px;
+                text-align: center;
+                line-height: normal;
+            }
+
+            .dc-text-filter-input {
+                display: block;
+                width: 100%;
+                padding: .375rem .75rem;
+                font-size: 1rem;
+                line-height: 1.5;
+                color: #495057;
+                background-color: #fff;
+                background-clip: padding-box;
+                border: 1px solid #ced4da;
+                border-radius: .25rem;
+                transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Cidade</h5>
+                        <div class="card-body">
+                            <div id="usuarioChart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Top5</h5>
+                        <div class="card-body">
+                            <div id="top5Chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Volume de vendas</h5>
+                        <div class="card-body">
+                            <div id="volumeChart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <h5 class="card-header">Vendas por unidade</h5>
+                        <div class="card-body">
+                            <div id="vendasChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col">
+                    <div id="search" placeholder="filtro"></div>
+                </div>
+                <div class="col">
+                    <div id="dataCount">
+                        <span class="filter-count"></span>
+                        selecionados de <span class="total-count"></span>
+                        registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <table class="table table-hover dc-data-table"></table>
+            </div>
+        </div>
+        <script src='../js/d3.min.js'></script>
+        <script src='../js/crossfilter.min.js'></script>
+        <script src='../js/dc.min.js'></script>
+        <script src="mercadoLivre.js"></script>
+        <script>
+            //celular MLB1055
+            //cervejas MLB194799
+            //cosmeticos MLB1263
+            //informatica MLB1648
+            getDataML('MLB1263', 1000).then(data=>{
+
+                console.log(data[0]);
+
+                var ndx = crossfilter(data);
+                var all = ndx.groupAll();
+
+                var cidadeDim = ndx.dimension(function(d) {
+                    return d.address.state_name;
+                });
+
+                var cidadeGroup = cidadeDim.group();
+
+                dc.rowChart("#usuarioChart").height(400).dimension(cidadeDim).group(cidadeGroup).elasticX(true)
+
+                var top5Dim = ndx.dimension(function(d) {
+                    //return d.nome;
+                    let n = d.title.split(" ").filter(f=>f.length > 2);
+                    return n[0] + " " + n[1];
+
+                });
+
+                var top5Group = getTops(top5Dim.group());
+
+                dc.rowChart('#top5Chart').dimension(top5Dim).height(400).group(top5Group)// Assign colors to each value in the x scale domain
+                .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
+                    return d.key;
+                }).title(function(d) {
+                    return d.value;
+                }).elasticX(true).xAxis().ticks(4)
+
+                //vendas
+                var vendasDim = ndx.dimension(function(d) {
+                    return d.sold_quantity;
+                });
+
+                var vendasGroup = getTops(vendasDim.group());
+
+                dc.rowChart('#vendasChart').dimension(vendasDim).height(400).group(vendasGroup)// Assign colors to each value in the x scale domain
+                .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
+                    return d.key;
+                }).title(function(d) {
+                    return d.value;
+                }).elasticX(true).xAxis().ticks(4)
+
+                //grid                           
+                var tableDim = ndx.dimension(function(d) {
+                    return d.title;
+                });
+
+                var tableGroup = tableDim.group();
+
+                dc.textFilterWidget("#search").dimension(tableDim);
+
+                var i = 0;
+                dc.dataTable('.dc-data-table').showSections(true).dimension(tableDim).columns(["id", {
+                    label: "Produto",
+                    format: function(e) {
+                        return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
+                    }
+                }, "price", "sold_quantity", {
+                    label: "Lucro",
+                    format: function(e) {
+                        return 'R$ ' + Number(e.price * e.sold_quantity).toFixed(2);
+                    }
+                }, {
+                    label: "Frete Grátis",
+                    format: function(e) {
+                        return e.shipping.free_shipping ? 'sim' : 'não'
+                    }
+                }]).sortBy(function(d) {
+                    return -d.sold_quantity;
+                }).on('renderlet', function(c) {
+                    i = 0;
+                });
+
+                //count(*)      
+                dc.dataCount("#dataCount").dimension(ndx).group(all);
+
+                dc.renderAll();
+            }
+            )
+        </script>
+    </body>
+</html>

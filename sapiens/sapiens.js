@@ -10,36 +10,17 @@ var usuarioChart    = dc.rowChart("#usuarioChart"),
     dataTable       = dc.dataTable('.dc-data-table');
 
 
-var locale = d3.timeFormatLocale({
-  "decimal": ",",
-  "thousands": ".",
-  "grouping": [3],
-  "currency": ["R$", ""],
-  "dateTime": "%d/%m/%Y %H:%M:%S",
-  "date": "%d/%m/%Y",
-  "time": "%H:%M:%S",
-  "periods": ["AM", "PM"],
-  "days": ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
-  "shortDays": ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
-  "months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
-  "shortMonths": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
-});
-
-
-
-var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-
-
  //Id;NUP;Tarefa_id;Setor;Usuario;Especie;Dia_hora
 const allData = Promise.all([
      //tarefas
-    d3.csv("../data/sapiens/tarefas.csv"),
+    d3.csv("../data/sapiens/tarefas2019.csv"),
     //atividades
-    d3.csv("../data/sapiens/atividades.csv")
+    d3.csv("../data/sapiens/atividades2019.csv")
 ]);
 
 
 var charts = undefined;
+var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 
 allData.then(data => {
@@ -58,17 +39,14 @@ allData.then(data => {
           movimento:        d.Especie,
           prazo_i:          (t !== undefined) ? parseDate(t.Inicio_prazo) : null,
           prazo_f:          (t !== undefined) ? parseDate(t.Final_prazo) : null,
-          data:             parseDate(d.Dia_hora),
-          dataHora:         d.Dia_hora
+          data:             parseDate(d.Dia_hora)
           //tempo_analise:    daysBetween(data, new Date())
         }
     });
 
-
     dados = dados.filter(e => {
         return e.setor.endsWith("MC") || e.setor.endsWith("PROTOCOLO");
-    })
-
+    });
 
     var ndx = crossfilter(dados);
     var all = ndx.groupAll();
@@ -92,14 +70,16 @@ allData.then(data => {
 
     var mesDim = ndx.dimension(function(d){
         var mes = d.data.getMonth();
-        return mes;
+        var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+         return mes;
     });
 
 
     var semanaDim = ndx.dimension(function (d) {
         var day = d.data.getDay();
         var name = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-        return name[day];
+        return day + '.' + name[day];
     });
     
 
@@ -120,31 +100,18 @@ allData.then(data => {
     var tableGroup          = tableDim.group();
     var semanaGroup         = semanaDim.group();
 
-    var xAxs = d3.scaleLinear()
-              .domain([0, 12]);
-
-
-    function multiFormat(date) {
-      return (d3.timeSecond(date) < date ? formatMillisecond
-          : d3.timeMinute(date) < date ? formatSecond
-          : d3.timeHour(date) < date ? formatMinute
-          : d3.timeDay(date) < date ? formatHour
-          : d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? formatDay : formatWeek)
-          : d3.timeYear(date) < date ? formatMonth
-          : formatYear)(date);
-    }          
-
     charts = [
-         mesChart
+        mesChart
             .dimension(mesDim)
             .width(500)
             .group(mesGroup)
             .elasticY(true) 
-          .x(xAxs)
-          .xAxis()
-          .tickFormat(function(e){
-            return labels[e];
-          }),
+              .x(d3.scaleLinear()
+              .domain([0, 12]))
+              .xAxis()
+              .tickFormat(function(e){
+                return labels[e];
+              }),
 
         usuarioChart
             .height(1500)
@@ -159,7 +126,7 @@ allData.then(data => {
             .elasticX(true),
 
          movimentoChart
-            .height(2800)
+            .height(2500)
             .dimension(movimentoDim)
             .group(movimentoGroup)
             .elasticX(true),
@@ -200,7 +167,7 @@ allData.then(data => {
             // Assign colors to each value in the x scale domain
             .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb'])
             .label(function (d) {
-                return d.key;
+                return d.key.split('.')[1];
             })
             .options ({
               'width' : 400,
@@ -237,6 +204,7 @@ allData.then(data => {
                         return daysBetween(e.data, e.prazo_f)
                     }
                 }
+                
              ])
 
 
@@ -275,6 +243,8 @@ function reduzir(mov){
  // new Date(ano, mês, dia, hora, minuto, segundo, milissegundo);
 function parseDate(data){
 
+   // if(data == undefined) return;
+
     let Y = data.substring(6,10); 
     let m = data.substring(3,5)-1; //mes comeca com zero
     let d = data.substring(0,2);
@@ -283,7 +253,7 @@ function parseDate(data){
     let mn = data.substring(14,16);
     let s  = data.substring(17,19);
 
-    return new Date(Y, m, d, h, mn, s); 
+    return new Date(Y, m, d, h, mn, s);
 }   
 
 function join(lookupTable, mainTable, lookupKey, mainKey, select) {
