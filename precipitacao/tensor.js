@@ -12,21 +12,7 @@ async function loadData() {
            
             allData = d3.merge(allData);
 
-            const dados = allData.map(d => ({
-                  //date:              new Date(d.Date).getTime(),
-                  estacao:           d.codigo_estacao,
-                  temp_max:          Number(d.temp_max),
-                  temp_min:          Number(d.temp_min),
-                  umid_max:          Number(d.umid_max),
-                  umid_min:          Number(d.umid_min),
-                  orv_max:           Number(d.pto_orvalho_max),
-                  orv_min:           Number(d.pto_orvalho_min),
-                  pres_max:          Number(d.pressao_max),
-                  pres_min:          Number(d.pressao_min),
-                  vento_vel:         Number(d.vento_vel),
-                  vento_dir:         Number(d.vento_direcao),
-                  precipitacao:      Number(d.precipitacao)
-            })).filter(f => {
+            const dados = allData.filter(f => {
                 return !isNaN(f.temp_max)
             })
 
@@ -38,62 +24,39 @@ async function loadData() {
 
 
 async function run() {
-    // Load and plot the original input data that we are going to train on.
-    await loadData().then(data => {
-
-        
-
-        /**  const model = tf.sequential();
-        model.add(tf.layers.dense({units: 1, inputShape: [1]})); **/
-
-
+   
+    loadData().then(data => {
 
         const model = loadModel();  
         tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-        convertToTensor(data);
+        const treino = data.splice(0, 2000); //apenas 200 registros
 
-       /** model.compile({
-            loss: 'meanSquaredError',
-            optimizer: 'sgd'
-        })
+        const tensorData = convertToTensor(treino);
+        const {inputs, labels} = tensorData;
 
-        const xs = tf.tensor2d([1,-1,3,5,8,9,7,10], [8,1]);
-        const ys = tf.tensor2d([10,-11,30,50,80,90,70,100], [8,1]);
+        // Train the model  
+        await trainModel(model, inputs, labels);
 
-
-        model.fit(xs, ys, {epochs: 500});
-
-        let predict = model.predict(tf.tensor2d([35], [1, 1])); **/
-
-        //d3.select('#tensor').append('div').text(predict);
+        //testModel(model, data, tensorData);
+        /**
+        const test = data.splice(3000, 3100);
+        test.forEach(f => {
+            console.log(model.predict(tf.tensor2d(f, [8, 8])))
+        }) **/
+        
     });
 }
 
+function loadModel(){
+      const model = tf.sequential(); 
+      // Add a single hidden layer
+      model.add(tf.layers.dense({inputShape: [8], units:8, useBias: true}));
+      // Add an output layer
+      model.add(tf.layers.dense({units: 1, useBias: true}));
 
-async function trainModel(model, inputs, labels) {
-  // Prepare the model for training.  
-  model.compile({
-    optimizer: 'sgd',
-    loss: 'meanSquaredError',//tf.losses.meanSquaredError,
-    metrics: ['mse'],
-  });
-  
-  const batchSize = 32;
-  const epochs = 250;
-  
-  return await model.fit(inputs, labels, {
-    batchSize,
-    epochs,
-    shuffle: true,
-    callbacks: tfvis.show.fitCallbacks(
-      { name: 'Training Performance' },
-      ['loss', 'mse'], 
-      { height: 200, callbacks: ['onEpochEnd'] }
-    )
-  });
+      return model;
 }
-
 
 function convertToTensor(data) {
   // Wrapping these calculations in a tidy will dispose any 
@@ -103,10 +66,26 @@ function convertToTensor(data) {
     tf.util.shuffle(data);
 
     // Step 2. Convert data to Tensor
-    const inputs = data.map(d => d.horsepower)
-    const labels = data.map(d => d.mpg);
+    const inputs = data.map(d => {
+        return [
+            Number(d.temp_max),
+            Number(d.temp_min),
+            Number(d.umid_max),
+            Number(d.umid_min),
+            Number(d.pto_orvalho_max),
+            Number(d.pto_orvalho_min),
+            Number(d.pressao_max),
+            Number(d.pressao_min)
+        ]
+    })
 
-    const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]);
+    const labels = data.map(d => {
+         return[ 
+            Number(d.precipitacao)
+         ]  
+    });
+
+    const inputTensor = tf.tensor2d(inputs, [inputs.length, 8]);
     const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
 
     //Step 3. Normalize the data to the range 0 - 1 using min-max scaling
@@ -131,16 +110,73 @@ function convertToTensor(data) {
 }
 
 
-function loadModel(){
-      const model = tf.sequential(); 
+async function trainModel(model, inputs, labels) {
+  // Prepare the model for training.  
+  model.compile({
+    optimizer: 'sgd',
+    loss: 'meanSquaredError',//tf.losses.meanSquaredError,
+    metrics: ['mse'],
+  });
   
-      // Add a single hidden layer
-      model.add(tf.layers.dense({inputShape: [1], units:5, useBias: true}));
-
-      // Add an output layer
-      model.add(tf.layers.dense({units: 1, useBias: true}));
-
-      return model;
+  const batchSize = 32;
+  const epochs = 30;
+  
+  return await model.fit(inputs, labels, {
+    batchSize,
+    epochs,
+    shuffle: true,
+    callbacks: tfvis.show.fitCallbacks(
+      { name: 'Training Performance' },
+      ['loss', 'mse'], 
+      { height: 200, callbacks: ['onEpochEnd'] }
+    )
+  });
 }
+
+function testModel(model, inputData, normalizationData) {
+  const {inputMax, inputMin, labelMin, labelMax} = normalizationData;  
+  
+  // Generate predictions for a uniform range of numbers between 0 and 1;
+  // We un-normalize the data by doing the inverse of the min-max scaling 
+  // that we did earlier.
+  const [xs, preds] = tf.tidy(() => {
+    
+    const xs = tf.linspace(0, 1, 100);      
+    const preds = model.predict(xs.reshape([100, 1]));      
+    
+    const unNormXs = xs
+      .mul(inputMax.sub(inputMin))
+      .add(inputMin);
+    
+    const unNormPreds = preds
+      .mul(labelMax.sub(labelMin))
+      .add(labelMin);
+    
+    // Un-normalize the data
+    return [unNormXs.dataSync(), unNormPreds.dataSync()];
+  });
+  
+ 
+  const predictedPoints = Array.from(xs).map((val, i) => {
+    return {x: val, y: preds[i]}
+  });
+  
+  const originalPoints = inputData.map(d => ({
+    x: d.horsepower, y: d.mpg,
+  }));
+  
+  
+  tfvis.render.scatterplot(
+    {name: 'Model Predictions vs Original Data'}, 
+    {values: [originalPoints, predictedPoints], series: ['original', 'predicted']}, 
+    {
+      xLabel: 'Horsepower',
+      yLabel: 'MPG',
+      height: 300
+    }
+  );
+}
+
+
 
 document.addEventListener('DOMContentLoaded', run);
