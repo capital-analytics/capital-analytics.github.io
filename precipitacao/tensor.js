@@ -15,17 +15,17 @@ async function loadData() {
             const dados = allData.map(d => ({
                   //date:              new Date(d.Date).getTime(),
                   estacao:           d.codigo_estacao,
-                  temp_max:          d.temp_max,
-                  temp_min:          d.temp_min,
-                  umid_max:          d.umid_max,
-                  umid_min:          d.umid_min,
-                  orv_max:           d.pto_orvalho_max,
-                  orv_min:           d.pto_orvalho_min,
-                  pres_max:          d.pressao_max,
-                  pres_min:          d.pressao_min,
-                  vento_vel:         d.vento_vel,
-                  vento_dir:         d.vento_direcao,
-                  precipitacao:      d.precipitacao
+                  temp_max:          Number(d.temp_max),
+                  temp_min:          Number(d.temp_min),
+                  umid_max:          Number(d.umid_max),
+                  umid_min:          Number(d.umid_min),
+                  orv_max:           Number(d.pto_orvalho_max),
+                  orv_min:           Number(d.pto_orvalho_min),
+                  pres_max:          Number(d.pressao_max),
+                  pres_min:          Number(d.pressao_min),
+                  vento_vel:         Number(d.vento_vel),
+                  vento_dir:         Number(d.vento_direcao),
+                  precipitacao:      Number(d.precipitacao)
             })).filter(f => {
                 return f.temp_max !== "////"
             })
@@ -38,14 +38,20 @@ async function loadData() {
         return data;
 }
 
+
 async function run() {
     // Load and plot the original input data that we are going to train on.
     await loadData().then(data => {
-        console.log(data.length);
+        data.splice(0, 100).forEach((f, i) => {
+            console.log(i, ">>", f);
+        })
 
 
-        const model = tf.sequential();
-        model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+        /**  const model = tf.sequential();
+        model.add(tf.layers.dense({units: 1, inputShape: [1]})); **/
+
+        const model = loadModel();  
+        tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
         model.compile({
             loss: 'meanSquaredError',
@@ -60,32 +66,21 @@ async function run() {
 
         let predict = model.predict(tf.tensor2d([35], [1, 1]));
 
-        d3.select('#tensor').append('div').text(predict);
+        //d3.select('#tensor').append('div').text(predict);
     });
+}
 
 
+function loadModel(){
+      const model = tf.sequential(); 
+  
+      // Add a single hidden layer
+      model.add(tf.layers.dense({inputShape: [1], units:5, useBias: true}));
 
+      // Add an output layer
+      model.add(tf.layers.dense({units: 1, useBias: true}));
 
-
-
-    /**
-    const values = data.map(d=>({
-        x: d.insolacao,
-        y: d.temp,
-    }));
-
-    tfvis.render.scatterplot({
-        name: 'Horsepower v MPG'
-    }, {
-        values
-    }, {
-        xLabel: 'Horsepower',
-        yLabel: 'MPG',
-
-        height: 300
-    });**/
-
-    // More code will be added below **/
+      return model;
 }
 
 document.addEventListener('DOMContentLoaded', run);
