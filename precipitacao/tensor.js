@@ -1,41 +1,49 @@
 async function loadData() {
-    //Estacao;Data;Hora;Precipitacao;TempMaxima;TempMinima;Insolacao;EvaporacaoPiche;TempCompMedia;UmidadeRelativaMedia;VelocidadeVentoMedia
-    let cfg = {
-        hasHeader: true,
-        delimiter: ";"
-    }
     
-    const csvDataset = tf.data.csv('data/dados.csv', cfg);
+        data = [];
+        //codigo_estacao,data,hora,temp_inst,temp_max,temp_min,umid_inst,umid_max,
+        //umid_min,pto_orvalho_inst,
+        //pto_orvalho_max,pto_orvalho_min,pressao,pressao_max,pressao_min,vento_vel,vento_direcao, 
+        //vento_rajada,radiacao,precipitacao
+        await Promise.all([
+            d3.csv("data/brasilia.csv"),
+            d3.csv("data/aguasEmendadas.csv")
+        ]).then(function(allData) {
+           
+            allData = d3.merge(allData);
 
-  
+            const dados = allData.map(d => ({
+                  //date:              new Date(d.Date).getTime(),
+                  estacao:           d.codigo_estacao,
+                  temp_max:          d.temp_max,
+                  temp_min:          d.temp_min,
+                  umid_max:          d.umid_max,
+                  umid_min:          d.umid_min,
+                  orv_max:           d.pto_orvalho_max,
+                  orv_min:           d.pto_orvalho_min,
+                  pres_max:          d.pressao_max,
+                  pres_min:          d.pressao_min,
+                  vento_vel:         d.vento_vel,
+                  vento_dir:         d.vento_direcao,
+                  precipitacao:      d.precipitacao
+            }));  
 
-    csvDataset.forEachAsync(e => {
-       var filtro = csvDataset.filter(f => {
-            return e.Data === f
+            dados.forEach(f => {
+                data.push(f);
+            })
         })
 
-        e.precipitacao = filtro[1].Precipitacao;
-       // e.tempMinima   = (filtro[1]) ? filtro[1].TempMinima : 0;
-    })
-
-
-    csvDataset.forEachAsync(d => {
-        console.log(d)
-    }) 
-
-    const cleaned = csvDataset.map(m =>({
-            insolacao:    m.Insolacao,
-            temp:         m.TempCompMedia,
-            precipitacao: m.Precipitacao
-    })).filter(f => f.precipitacao == undefined);
-
-
-    return cleaned;
+        return data;
 }
 
 async function run() {
     // Load and plot the original input data that we are going to train on.
-    const data = await loadData();
+    loadData().then(data => {
+        console.log(data);
+    });
+
+
+
 
 
 
