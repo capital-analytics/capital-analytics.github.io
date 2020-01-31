@@ -27,12 +27,10 @@ async function loadData() {
                   vento_dir:         Number(d.vento_direcao),
                   precipitacao:      Number(d.precipitacao)
             })).filter(f => {
-                return f.temp_max !== "////"
+                return !isNaN(f.temp_max)
             })
 
-            dados.forEach(f => {
-                data.push(f);
-            })
+            data = dados;
         })
 
         return data;
@@ -42,18 +40,20 @@ async function loadData() {
 async function run() {
     // Load and plot the original input data that we are going to train on.
     await loadData().then(data => {
-        data.splice(0, 100).forEach((f, i) => {
-            console.log(i, ">>", f);
-        })
 
+        
 
         /**  const model = tf.sequential();
         model.add(tf.layers.dense({units: 1, inputShape: [1]})); **/
 
+
+
         const model = loadModel();  
         tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-        model.compile({
+        convertToTensor(data);
+
+       /** model.compile({
             loss: 'meanSquaredError',
             optimizer: 'sgd'
         })
@@ -64,10 +64,70 @@ async function run() {
 
         model.fit(xs, ys, {epochs: 500});
 
-        let predict = model.predict(tf.tensor2d([35], [1, 1]));
+        let predict = model.predict(tf.tensor2d([35], [1, 1])); **/
 
         //d3.select('#tensor').append('div').text(predict);
     });
+}
+
+
+async function trainModel(model, inputs, labels) {
+  // Prepare the model for training.  
+  model.compile({
+    optimizer: 'sgd',
+    loss: 'meanSquaredError',//tf.losses.meanSquaredError,
+    metrics: ['mse'],
+  });
+  
+  const batchSize = 32;
+  const epochs = 250;
+  
+  return await model.fit(inputs, labels, {
+    batchSize,
+    epochs,
+    shuffle: true,
+    callbacks: tfvis.show.fitCallbacks(
+      { name: 'Training Performance' },
+      ['loss', 'mse'], 
+      { height: 200, callbacks: ['onEpochEnd'] }
+    )
+  });
+}
+
+
+function convertToTensor(data) {
+  // Wrapping these calculations in a tidy will dispose any 
+  // intermediate tensors.
+  return tf.tidy(() => {
+    // Step 1. Shuffle the data    
+    tf.util.shuffle(data);
+
+    // Step 2. Convert data to Tensor
+    const inputs = data.map(d => d.horsepower)
+    const labels = data.map(d => d.mpg);
+
+    const inputTensor = tf.tensor2d(inputs, [inputs.length, 1]);
+    const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
+
+    //Step 3. Normalize the data to the range 0 - 1 using min-max scaling
+    const inputMax = inputTensor.max();
+    const inputMin = inputTensor.min();  
+    const labelMax = labelTensor.max();
+    const labelMin = labelTensor.min();
+
+    const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
+    const normalizedLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
+
+    return {
+      inputs: normalizedInputs,
+      labels: normalizedLabels,
+      // Return the min/max bounds so we can use them later.
+      inputMax,
+      inputMin,
+      labelMax,
+      labelMin,
+    }
+  });  
 }
 
 
