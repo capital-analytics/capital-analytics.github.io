@@ -58,12 +58,12 @@ function loadModel(){
       return model;
 }
 
-function convertToTensor(data) {
+function convertToTensors(data) {
   // Wrapping these calculations in a tidy will dispose any 
   // intermediate tensors.
   return tf.tidy(() => {
     // Step 1. Shuffle the data    
-    tf.util.shuffle(data);
+   // tf.util.shuffle(data);
 
     // Step 2. Convert data to Tensor
     const inputs = data.map(d => {
@@ -113,7 +113,7 @@ function convertToTensor(data) {
 async function trainModel(model, inputs, labels) {
   // Prepare the model for training.  
   model.compile({
-    optimizer: 'sgd',
+    optimizer: tf.train.adam(),//'sgd',
     loss:      'meanSquaredError',//tf.losses.meanSquaredError,
     metrics:  ['mse'],
   });
