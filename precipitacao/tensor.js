@@ -25,20 +25,20 @@ async function loadData() {
 
 async function run() {
    
-    loadData().then(data => {
+    await loadData().then(data => {
 
         const model = loadModel();  
         tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-        const treino = data.splice(0, 2000); //apenas 200 registros
+        const treino = data.splice(0, 200); //apenas 200 registros
 
         const tensorData = convertToTensor(treino);
         const {inputs, labels} = tensorData;
 
         // Train the model  
-        await trainModel(model, inputs, labels);
+        trainModel(model, inputs, labels);
 
-        //testModel(model, data, tensorData);
+       // testModel(model, data, tensorData);
         /**
         const test = data.splice(3000, 3100);
         test.forEach(f => {
@@ -114,8 +114,8 @@ async function trainModel(model, inputs, labels) {
   // Prepare the model for training.  
   model.compile({
     optimizer: 'sgd',
-    loss: 'meanSquaredError',//tf.losses.meanSquaredError,
-    metrics: ['mse'],
+    loss:      'meanSquaredError',//tf.losses.meanSquaredError,
+    metrics:  ['mse'],
   });
   
   const batchSize = 32;
