@@ -1,59 +1,69 @@
-async function loadData() {
-    
-        data = [];
-        //codigo_estacao,data,hora,temp_inst,temp_max,temp_min,umid_inst,umid_max,
-        //umid_min,pto_orvalho_inst,
-        //pto_orvalho_max,pto_orvalho_min,pressao,pressao_max,pressao_min,vento_vel,vento_direcao, 
-        //vento_rajada,radiacao,precipitacao
-        await Promise.all([
-            d3.csv("data/brasilia.csv"),
-            d3.csv("data/aguasEmendadas.csv")
-        ]).then(function(allData) {
-           
-            allData = d3.merge(allData);
 
-            const dados = allData.filter(f => {
-                return !isNaN(f.temp_max)
-            })
+async function loadData(){
+     const bsb = tf.data.csv('data/brasilia.csv');
+     const am  = tf.data.csv('data/aguasEmendadas.csv');
 
-            data = dados;
-        })
+     const data = tf.data.zip([bsb, am]);
 
-        return data;
+	 const a = data.map(m => m[0]);
+	 const b = data.map(m => m[1]);
+	
+	 const dados = a.concatenate(b);
+      
+     var dataSet = []; 
+
+     await dados.forEachAsync(e =>
+        //console.log(e.precipitacao)
+       dataSet.push(e)
+     );
+
+     return dataSet.splice(0, 1000).filter(f => !isNaN(f.temp_max)) 
+
+
+     //return dataSet;
 }
+
 
 
 async function run() {
    
-     loadData().then(data => {
-
-        const model = tf.sequential();
+        const data = await loadData();
+        
         //tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-        const treino = data.splice(0, 1000); //apenas 1000 registros
-
-        const tensorData = convertToTensors(treino, 0.3); //30% para testes
+        const tensorData = convertToTensors(data, 0.3); //30% para testes
         const [xTrain, yTrain, xTest, yTest] = tensorData;
 
         // Train the model  
-        trainModel(model, xTrain, yTrain, xTest, yTest);
+        model = await trainModel(xTrain, yTrain, xTest, yTest);
 
-        testModel(model)
+        const xData = xTest.dataSync();
+        const pData = await model.predict(xTest).dataSync(); 
 
-       // testModel(model, data, tensorData);
-        /**
-        const test = data.splice(3000, 3100);
-        test.forEach(f => {
-            console.log(model.predict(tf.tensor2d(f, [8, 8])))
-        }) **/
-        
-    });
+        var c, e = 0;
+
+        //teste de predicao
+        xData.forEach((d, i) => {
+          console.log('dado: ', d, ' pre: ', pData[i]);
+           /** if(d[1] == pData[i]){
+             c++;
+           }else{
+             e++;
+           } **/
+        });
+
+        console.log('taxa de erro: ', (e/xData.length));
+
+        //let input = tf.tensor2d([26.7, 23.8, 64, 51, 17.6, 15.2, 889.2, 888.9], [1, 8])
+        //model.predict(input, {batchSize: 4}).print()
+
+
 }
 
-
+/** 
 function testModel(model){
      let input = tf.tensor2d([10.2, 19.7, 87, 76, 18, 17.5, 800.7, 888.1], [1, 8])
-     const prediction = model.predict(input);
+     const prediction = model.predict(input, {batchSize: 4});
 
      console.log(prediction.toString());
 }
@@ -78,7 +88,7 @@ function convertToTensors(data, testSplit) {
   // intermediate tensors.
   return tf.tidy(() => {
     // Step 1. Shuffle the data    
-   // tf.util.shuffle(data);
+    tf.util.shuffle(data);
 
     // Step 2. Convert data to Tensor
     const inputs = data.map(d => {
@@ -142,12 +152,13 @@ function convertToTensors(data, testSplit) {
 }
 
 
-async function trainModel(model, xTrain, yTrain, xTest, yTest) {
+async function trainModel(xTrain, yTrain, xTest, yTest) {
+
+      const model = tf.sequential();
 
       const learningRate   = .01;
-      const numberOfEpochs = 10;
+      const numberOfEpochs = 30;
       const batchSize = 32;
-
 
       // Add a single hidden layer
       model.add(tf.layers.dense({
@@ -164,24 +175,38 @@ async function trainModel(model, xTrain, yTrain, xTest, yTest) {
       }));
 
       model.compile({
-        optimizer: tf.train.adam(),//'sgd',
+        optimizer: tf.train.adam(.01),//'sgd',
         loss:      'meanSquaredError',//tf.losses.meanSquaredError,
-        metrics:  ['mse'],
+        metrics:  ['accuracy'],
       });
 
-      return await model.fit(xTrain, yTrain, {
+
+      const history = await model.fit(xTrain, yTrain, {
+          epochs: numberOfEpochs,
+          validationData: [xTest, yTest],
+          callbacks: {
+            onEpochEnd: async (epoch, log) => {
+              console.log('Epoch: ', epoch, ' Loss: ', log.loss);
+              await tf.nextFrame();
+            }
+          }
+      })
+
+      return model;
+
+      /** return await model.fit(xTrain, yTrain, {
         batchSize,
         numberOfEpochs,
         shuffle: true,
         callbacks: tfvis.show.fitCallbacks(
           { name: 'Training Performance' },
           ['loss', 'mse'], 
-          { height: 200, callbacks: ['onEpochEnd'] }
-        )
-      });
+          { height: 200, callbacks: ['onEpochEnd'] 
+        })
+      }); **/
 
 
-      //return model;
+     // return model;
 }
 
 function testModel2(model, inputData, normalizationData) {
