@@ -1,22 +1,17 @@
+var charts = undefined;
 var labels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-var grid = [];
+var  mesChart    = dc.barChart("#mesChart"),
+     pecasChart  = dc.rowChart("#pecasChart"),
+     setorChart  = dc.rowChart("#setorChart"),
+     respChart   = dc.rowChart("#respChart"),
+     semanaChart = dc.rowChart('#semanaChart');
 
- window.filter = function(filters) {
-    filters.forEach(function(d, i) { 
-        charts[i].filter(d); 
-    });
-    renderAll();
- };
+d3.json("data/assuntos_sociais_ivt.json").then(function(data) {
 
-Promise.all([
-    d3.json("data/assuntos_sociais_ivt.json")
-]).then(function(data) {
-  //console.log(data)
-    
-    var grid = data[0];
+   // var grid = data[0];
 
-    var lista = grid.map(x=>{
+    var lista = data.map(x=>{
         return ({
             "responsavel": x.advogado,
             "data":        new Date(x.data),
@@ -30,23 +25,18 @@ Promise.all([
 
     var ndx = crossfilter(lista);
     var all = ndx.groupAll();
+    
 
-    //mesDim
-    var mesDim = ndx.dimension(function(d) {
-        return d.data.getMonth();
-    });
+    function renderAll() {
+	   chart.each(render);
+	   list.each(render);
+	   d3.select("#active").text(formatNumber(all.value()));
+	}
 
-    var mesGroup = mesDim.group();
-
-    var mesChart = dc.barChart("#mesChart")
-            .dimension(mesDim)
-            .width(500).group(mesGroup)
-            .elasticY(true)
-            .x(d3.scaleLinear().domain([0, 12]))
-            .xAxis().tickFormat(function(e) {
-               return labels[e];
-     })
-
+	  // Renders the specified chart or list.
+	function render(method) {
+	    d3.select(this).call(method);
+	}
 
      //dia da semana
      var semanaDim = ndx.dimension(function (d) {
@@ -85,6 +75,7 @@ Promise.all([
 
     var mesGroup = mesDim.group();
 
+
     //grid                           
     var tableDim = ndx.dimension(function(d) {
         return d;
@@ -92,8 +83,18 @@ Promise.all([
 
     var tableGroup = tableDim.group();
 
-    var charts = [
-		dc.rowChart('#semanaChart')
+    charts = [
+        mesChart
+            .dimension(mesDim)
+            .group(mesGroup)
+            .width(500)
+            .elasticY(true)
+            .x(d3.scaleLinear().domain([0, 12]))
+            .xAxis().tickFormat(function(e) {
+               return labels[e];
+		    }),
+
+		semanaChart
 		  .width(180)
 		  .height(180)
 		  .margins({top: 20, left: 10, right: 10, bottom: 20})
@@ -110,24 +111,37 @@ Promise.all([
 		   }).elasticX(true)
 			 .xAxis().ticks(4),
 		
-		dc.rowChart("#pecasChart")
+		pecasChart
 		   .height(300)
 		   .dimension(pecasDim)
 		   .group(pecasGroup)
 		   .elasticX(true),
 		
-		dc.rowChart("#respChart")
+		respChart
 		  .height(200)
 		  .dimension(respDim)
 		  .group(respGroup)
 		  .elasticX(true),
 		  
-		dc.rowChart("#setorChart")
+		setorChart
 		  .height(800)
 		  .dimension(setorDim)
 		  .group(setorGroup)
 		  .elasticX(true)
-]
+    ]
+
+    window.filter = function(filters) {
+	   filters.forEach((d, i) => { 
+		   charts[i].filter(d); 
+	   });
+	   dc.renderAll();
+	};
+
+    var chart = d3.selectAll(".chart")
+      .data(charts)
+      .each(function(chart) { 
+          d3.brush(renderAll)//.end(renderAll); 
+      });
 
     var dataTable = dc.dataTable('.dc-data-table')
                       .dimension(tableDim)
