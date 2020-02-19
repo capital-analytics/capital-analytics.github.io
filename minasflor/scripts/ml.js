@@ -32,36 +32,38 @@ function execute(){
          const inputs = data.map(m => m.indicacao);
          const outputs = data.map(m => m.produto);
 
-
-
-        //frequence(inputs.join(' '))
-        
          const trainingData = [];
 
          data.forEach((f, i) => {
              trainingData.push({
-                 input: { [inputs[i]]: 1 },
+                 input:  { [toArray(inputs[i])]: 1 },
                  output: { [outputs[i]]: 1 },
              }) 
          })
 
          
 
-        const net = new brain.NeuralNetwork({ hiddenLayers: [20] });
+        const net = new brain.NeuralNetwork({ 
+                activation: 'sigmoid',
+                hiddenLayers: [20],
+                learningRate: 0.015 
+            });
         const stats = net.train(trainingData);
 
         console.log(stats);
 
           
 
-        console.log(brain.likely({['recuperação', 'profissional', 'fibra_capilar']: 1}, net));
+        console.log(brain.likely(['quimicamente', 'fragilizados'], net));
 
         /** const res = brain.likely('fragilizados', 'ressecados', 'quimicamente_processados'], net);
         console.log(res);**/
     })
 }
 
-
+function toArray(str){
+    return str.split(' ')
+}
 
 function frequence(data){
      var f = new TFIDF();
