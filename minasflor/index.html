@@ -4,9 +4,7 @@
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
         <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
-        <style>
-
-        </style>
+        <script src="https://unpkg.com/brain.js@1.6.0/browser.js"></script>
     </head>
     <body>
         <div class="container">
@@ -14,26 +12,8 @@
         </div>
         <script src='../js/d3.min.js'></script>
         <script src='../js/crossfilter.min.js'></script>
-        <script src="ml.js"></script>
-        <script>
-                d3.json('data/dataset.json').then(data => {
+        <script src="scripts/tfidf.js"></script>
+        <script src="scripts/ml.js"></script>
 
-                    data = data.filter(f => {
-                        return f.details != null
-                    })
-
-                    data.forEach(f => {
-                        console.log(parse(f.details));
-                    })
-                })
-
-                function parse(str){
-                   var list =  str.match(/<p>(.*?)<br \/>/g)
-                   if(!list) return '';
-                   return list.map(m => {
-                       return m.replace(/^<p>|<br \/>$/g, "")
-                   });
-                }
-        </script>
     </body>
 </html>
