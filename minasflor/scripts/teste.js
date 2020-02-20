@@ -5,6 +5,19 @@ function execute(){
             return slugify(m.indicacao);
         })
 
+            
+        //var t = new TFIDF();
+        loadStrings(details);
+
+        executeFreq();
+
+        var res = getFrequency();
+        JSON.stringify(res);
+
+
+
+        /** 
+
         var t = new TFIDF();
             t.termFreq(details.join(' '));
 
@@ -24,7 +37,7 @@ function execute(){
 
 
         var d = dicionario.filter(f => f.freq == 1).filter(f => f.texto.length > 3)
-        console.log(d);
+        console.log(d); **/
     })
 }
 
