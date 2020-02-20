@@ -14,7 +14,7 @@ function execute(){
          wc.termFreq(inputs.join('\n'));
          wc.docFreq(inputs.join('\n'));
          
-         wc.finish(inputs.lenth);
+         //wc.finish(inputs.lenth);
 
          console.log(wc.getKeys())
 
