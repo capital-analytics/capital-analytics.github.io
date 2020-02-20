@@ -98,7 +98,7 @@ class TFIDF {
       var word = this.dict[key];
       var tf = word.count / this.totalwords;
       // See:
-      var idf = log(totaldocs / word.docCount);
+      var idf = Math.log(totaldocs / word.docCount);
       word.tfidf = tf * idf;
     }
   }
