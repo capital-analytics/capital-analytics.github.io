@@ -1,3 +1,23 @@
+function parseDataset(){
+    d3.json('data/dataset.json').then(data => {
+
+        data = data.filter(f => {
+            return f.details != null
+        })
+
+        data.forEach(f => {
+            console.log(parse(f.details), '-', f.title, "-", f.parentUrlSeo);
+        })
+
+         /** document.open();
+         data.forEach(f => {
+            document.write('<h3> ' + f.title + '</h3> ') 
+            document.write(f.details)
+         })  
+         document.close(); **/
+    })
+}
+
 function parse(str){
     return (str.match(/<p>(.*?)<br \/>/g)) ? str.match(/<p>(.*?)<br \/>/g).map(m => {
        return m.replace(/(&nbsp;|<([^>]+)>)/ig,'');

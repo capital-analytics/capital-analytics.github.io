@@ -79,11 +79,11 @@ class TFIDF {
   increment(word) {
     // Is this a new word?
     if (this.dict[word] == undefined) {
-        this.dict[word] = {};
-        this.dict[word].count = 1;
-        this.dict[word].docCount = 0;
-        this.dict[word].word = word;
-        this.keys.push(word);
+      this.dict[word] = {};
+      this.dict[word].count = 1;
+      this.dict[word].docCount = 0;
+      this.dict[word].word = word;
+      this.keys.push(word);
       // Otherwise just increment its count
     } else {
       this.dict[word].count++;
