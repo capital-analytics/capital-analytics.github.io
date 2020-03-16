@@ -2,9 +2,8 @@ var rodadaChart    = dc.barChart("#rodadaChart");
 var jogadorChart   = dc.rowChart('#jogadorChart');
 var periodoChart   = dc.rowChart("#periodoChart");
 var tipoChart      = dc.rowChart('#tipoChart');
-var respChart      = dc.rowChart("#respChart");
-var setorChart     = dc.rowChart("#setorChart");
-var dataTable      = dc.dataTable('.dc-data-table');
+var equipeChart    = dc.rowChart("#equipeChart");
+var dataTable      = dc.dataTable('#grid');
 
 //https://medium.com/@oieduardorabelo/javascript-armadilhas-do-asyn-await-em-loops-1cdad44db7f0
 async function getData() {
@@ -13,8 +12,36 @@ async function getData() {
     var allUrls = [];
     var dataset = [];
 
-    apis.set('gol marcado', 'api/estatisticas/1/tipo-scout/15/atletas');
-    //apis.set('gol sofrido', 'api/estatisticas/1/tipo-scout/17/atletas');
+    apis.set('gol marcado',             'api/estatisticas/1/tipo-scout/15/atletas');
+    apis.set('gol sofrido',             'api/estatisticas/1/tipo-scout/17/atletas');
+
+    apis.set('gol contra',              'api/estatisticas/1/tipo-scout/16/atletas');
+    apis.set('gol de cabeca',           'api/estatisticas/1/tipo-scout/1-editorial/atletas');
+    apis.set('gol de falta',            'api/estatisticas/1/tipo-scout/8/atletas');
+    apis.set('gol de penalti',          'api/estatisticas/1/tipo-scout/9/atletas');
+    apis.set('gol dentro da área',      'api/estatisticas/1/tipo-scout/24/atletas');
+    apis.set('gol fora da área',        'api/estatisticas/1/tipo-scout/12/atletas');
+
+    apis.set('finalização',             'api/estatisticas/1/tipo-scout/6-editorial/atletas');
+    apis.set('finalização certa',       'api/estatisticas/1/tipo-scout/3-editorial/atletas');
+    apis.set('finalização errada',      'api/estatisticas/1/tipo-scout/4-editorial/atletas');
+    apis.set('finalização na trave',    'api/estatisticas/1/tipo-scout/13/atletas');
+    apis.set('finalização para fora',   'api/estatisticas/1/tipo-scout/14/atletas');
+    apis.set('penalti perdido',         'api/estatisticas/1/tipo-scout/5-editorial/atletas');
+
+    apis.set('falta recebida',   'api/estatisticas/1/tipo-scout/7/atletas');
+    apis.set('falta cometida',   'api/estatisticas/1/tipo-scout/6/atletas');
+    apis.set('impedimento',      'api/estatisticas/1/tipo-scout/18/atletas');
+
+    apis.set('cartão vermelho',  'api/estatisticas/1/tipo-scout/2/atletas');
+
+    apis.set('defesa dificil',   'api/estatisticas/1/tipo-scout/4/atletas');
+    apis.set('defesa de penalti','api/estatisticas/1/tipo-scout/3/atletas');
+   
+    apis.set('assistencia',      'api/estatisticas/1/tipo-scout/2-editorial/atletas');
+    apis.set('passe errado',     'api/estatisticas/1/tipo-scout/19/atletas');
+    apis.set('roubada de bola',  'api/estatisticas/1/tipo-scout/22/atletas');
+
 
     //urls.forEach((k, v) => {
     var apisList = Array.from(apis);
@@ -39,32 +66,44 @@ async function getData() {
         });
     }    
 
+    //exportFile(dataset, 'test.json');
+    download(JSON.stringify(dataset), 'dataset.json', 'text/plain');
     //console.table(dataset);
+
     return dataset
 }
 
-
+function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], {type: contentType});
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}
 
 
 function execute(){
-    getData().then(data=>{
-
+    d3.json('data/dataset.json').then(data=>{
         var dataset = [];
         //normalizacao
         data.forEach(f => {
-               f.scouts.forEach(e => {
-                    e.tipo   = f.tipo;   
-                    e.atleta = f.atleta;
-                    e.equipe = f.equipe;   
-                    dataset.push(e);    
-               })
+           f.scouts.forEach(e => {
+                e.tipo   = f.tipo;   
+                e.atleta = f.atleta;
+                e.equipe = f.equipe;   
+                dataset.push(e);    
+           })
         });
+
+        dataset = dataset.filter(f => {
+            return f.equipe != null;
+        })
 
         var ndx = crossfilter(dataset);
         var all = ndx.groupAll();
 
         //rodada
-        var rodadaDim = ndx.dimension(function(d) {
+        var rodadaDim = ndx.dimension(d => {
             return d.rodada;
         });
 
@@ -78,13 +117,8 @@ function execute(){
                return e;
             })
 
-        /** rodadaChart.height(1000)
-                   .dimension(rodadaDim)
-                   .group(rodadaGroup)
-                   .elasticX(true)**/
-
         //periodo
-        var periodoDim = ndx.dimension(function(d) {
+        var periodoDim = ndx.dimension(d => {
             return d.periodo;
         });
 
@@ -104,15 +138,39 @@ function execute(){
 
         var tipoGroup = tipoDim.group();
 
-        tipoChart.height(400)
+        tipoChart.height(600)
                  .dimension(tipoDim)
                  .group(tipoGroup)
                  .elasticX(true)
 
         //equipe
+        var equipeDim = ndx.dimension(d => {
+            return d.equipe.nome_popular;
+        });
+
+        var equipeGroup = equipeDim.group();
+
+        equipeChart.height(600)
+                   .dimension(equipeDim)
+                   .group(equipeGroup)
+                   .elasticX(true)
 
         //jogador
-         var jogadorDim = ndx.dimension(function(d) {
+        var jogadorDim = ndx.dimension(function(d) {
+            return d.atleta.nome_popular;
+        });
+
+        var jogadorGroup = getTops(jogadorDim.group());
+
+        jogadorChart.dimension(jogadorDim).height(600).group(jogadorGroup)// Assign colors to each value in the x scale domain
+                    .label(function(d) {
+                        return d.key;
+                    }).title(function(d) {
+                        return d.value;
+                    }).elasticX(true).xAxis().ticks(4)
+
+        //posicao
+        var jogadorDim = ndx.dimension(function(d) {
             return d.atleta.nome_popular;
         });
 
@@ -125,77 +183,41 @@ function execute(){
                         return d.value;
                     }).elasticX(true).xAxis().ticks(4)
 
-        //posicao
-
-
-        /**
-        var cidadeGroup = cidadeDim.group();
-
-        dc.rowChart("#usuarioChart").height(400).dimension(cidadeDim).group(cidadeGroup).elasticX(true)
-
-        var top5Dim = ndx.dimension(function(d) {
-            //return d.nome;
-            let n = d.title.split(" ").filter(f=>f.length > 2);
-            return n[0] + " " + n[1];
-
-        });
-
-        var top5Group = getTops(top5Dim.group());
-
-        dc.rowChart('#top5Chart').dimension(top5Dim).height(400).group(top5Group)// Assign colors to each value in the x scale domain
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
-            return d.key;
-        }).title(function(d) {
-            return d.value;
-        }).elasticX(true).xAxis().ticks(4)
-
-        //vendas
-        var vendasDim = ndx.dimension(function(d) {
-            return d.sold_quantity;
-        });
-
-        var vendasGroup = getTops(vendasDim.group());
-
-        dc.rowChart('#vendasChart').dimension(vendasDim).height(400).group(vendasGroup)// Assign colors to each value in the x scale domain
-        .ordinalColors(['#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#dadaeb']).label(function(d) {
-            return d.key;
-        }).title(function(d) {
-            return d.value;
-        }).elasticX(true).xAxis().ticks(4)
-
         //grid                           
-        var tableDim = ndx.dimension(function(d) {
-            return d.title;
+        var tableDim = ndx.dimension(d => {
+            return  d.atleta.nome_popular;
         });
 
-        var tableGroup = tableDim.group();
+        var tableGroup = tableDim.group(); 
 
         dc.textFilterWidget("#search").dimension(tableDim);
 
         var i = 0;
-        dc.dataTable('.dc-data-table').showSections(true).dimension(tableDim).columns(["id", {
-            label: "Produto",
-            format: function(e) {
-                return '<a target="_blank" href="' + e.permalink + '">' + e.title + '</a>';
-            }
-        }, "price", "sold_quantity", {
-            label: "Lucro",
-            format: function(e) {
-                return 'R$ ' + Number(e.price * e.sold_quantity).toFixed(2);
-            }
-        }, {
-            label: "Frete Grátis",
-            format: function(e) {
-                return e.shipping.free_shipping ? 'sim' : 'não'
-            }
-        }]).sortBy(function(d) {
-            return -d.sold_quantity;
-        }).on('renderlet', function(c) {
+        dataTable.showSections(true)
+          .dimension(tableDim).columns([{
+                    label: "Atleta",
+                    format: function(e){
+                        return e.atleta.nome_popular;
+                    }
+                },
+                {
+                    label: "Posição",
+                    format: function(e){
+                        return e.atleta.posicao.macro_descricao;
+                    }
+                },
+                {
+                    label: "Time",
+                    format: function(e){
+                        return e.equipe.nome_popular;
+                    }
+                }
+          ]).on('renderlet', function(c) {
             i = 0;
         });
 
         //count(*)      
-        dc.dataCount("#dataCount").dimension(ndx).group(all); **/
+        dc.dataCount("#dataCount").dimension(ndx).group(all); 
 
         dc.renderAll();
     })
@@ -203,10 +225,6 @@ function execute(){
 
 
 execute();
-
-
-
-
 
 //You can then use .group(fakeGroup) to properly chart your data.
 function getTops(source_group) {
