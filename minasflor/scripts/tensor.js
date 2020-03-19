@@ -3,19 +3,45 @@
  * and cleaned of missing data.
  */
 async function getData() {
-    const carsDataReq = await fetch('https://storage.googleapis.com/tfjs-tutorials/carsData.json');
+   /** const carsDataReq = await fetch('https://storage.googleapis.com/tfjs-tutorials/carsData.json');
     const carsData = await carsDataReq.json();
     const cleaned = carsData.map(car=>({
         mpg: car.Miles_per_Gallon,
         horsepower: car.Horsepower,
     })).filter(car=>(car.mpg != null && car.horsepower != null));
 
-    return cleaned;
+    return cleaned; **/
+    const dataset = tf.data.csv('data/training_2.csv', {
+       delimiter: ';',
+       columnNames:['indicacao', 'produto'],
+    })
+
+    var dados = [];
+    await dataset.forEachAsync(e => dados.push(e));
+    return dados;
 }
+
+var dictionary = [];
 
 async function run() {
     // Load and plot the original input data that we are going to train on.
     const data = await getData();
+
+    var indicacao = data.map(m => {
+        return m.indicacao;
+    })
+
+     var produto = data.map(m => {
+        return m.produto;
+    })
+
+    dictionary = buildDictionary(indicacao);
+
+    const inputsN = indicacao.map(normalize);
+
+    console.table(inputsN);
+
+
     const values = data.map(d=>({
         x: d.horsepower,
         y: d.mpg,
@@ -30,6 +56,8 @@ async function run() {
         yLabel: 'MPG',
         height: 300
     });
+
+    return;
 
 
     // Create the model
@@ -168,6 +196,44 @@ function testModel(model, inputData, normalizationData) {
         yLabel: 'MPG',
         height: 300
     });
+}
+
+function buildDictionary(data){
+    const tokenizeArray = data.map(m => {
+        return m.split(' ');
+    })
+
+    const flattenedArray = [].concat.apply([], tokenizeArray).map(m => slugify(m));
+    return Array.from(new Set(flattenedArray));
+}
+
+function slugify(str){
+    var map = {
+        '-' : ' ',
+        '-' : '_',
+        'a' : 'á|à|ã|â|À|Á|Ã|Â',
+        'e' : 'é|è|ê|É|È|Ê',
+        'i' : 'í|ì|î|Í|Ì|Î',
+        'o' : 'ó|ò|ô|õ|Ó|Ò|Ô|Õ',
+        'u' : 'ú|ù|û|ü|Ú|Ù|Û|Ü',
+        'c' : 'ç|Ç',
+        'n' : 'ñ|Ñ'
+    };
+    
+    str = str.toLowerCase();
+    
+    for (var pattern in map) {
+        str = str.replace(new RegExp(map[pattern], 'g'), pattern);
+    };
+
+    return str;
+};
+
+function normalize(data){
+    var norm = data.split(' ').filter(f => f.length > 1).map(m => dictionary.indexOf(slugify(m))); 
+    while(norm.length < 4) { norm.push(99) }
+    return norm.splice(0, 4);
+    //return dictionary.indexOf(data) / dictionary.length;
 }
 
 document.addEventListener('DOMContentLoaded', run);
