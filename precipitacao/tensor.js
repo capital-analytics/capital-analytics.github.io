@@ -25,15 +25,14 @@ async function loadData() {
 
 async function run() {
    
-    await loadData().then(data => {
+        const data = await loadData();
 
         const model = loadModel();  
         tfvis.show.modelSummary({name: 'Model Summary'}, model);
 
-        const treino = data.splice(0, 200); //apenas 200 registros
-
-        const tensorData = convertToTensor(treino);
-        const {inputs, labels} = tensorData;
+        const treino = data.splice(0, 500); //apenas 200 registros
+        
+        const {inputs, labels} = convertToTensors(treino, 0.3);
 
         // Train the model  
         trainModel(model, inputs, labels);
@@ -44,8 +43,6 @@ async function run() {
         test.forEach(f => {
             console.log(model.predict(tf.tensor2d(f, [8, 8])))
         }) **/
-        
-    });
 }
 
 function loadModel(){
@@ -58,12 +55,14 @@ function loadModel(){
       return model;
 }
 
-function convertToTensors(data) {
+function convertToTensors(data, testSplit) {
+
+  const numExamples = data.length;
   // Wrapping these calculations in a tidy will dispose any 
   // intermediate tensors.
   return tf.tidy(() => {
     // Step 1. Shuffle the data    
-   // tf.util.shuffle(data);
+    tf.util.shuffle(data);
 
     // Step 2. Convert data to Tensor
     const inputs = data.map(d => {
@@ -85,27 +84,45 @@ function convertToTensors(data) {
          ]  
     });
 
-    const inputTensor = tf.tensor2d(inputs, [inputs.length, 8]);
-    const labelTensor = tf.tensor2d(labels, [labels.length, 1]);
+    var classes = new Set(labels.map(m => m[0]));
 
-    //Step 3. Normalize the data to the range 0 - 1 using min-max scaling
-    const inputMax = inputTensor.max();
-    const inputMin = inputTensor.min();  
-    const labelMax = labelTensor.max();
-    const labelMin = labelTensor.min();
+    const dataByClass = [];
+    const targetsByClass = [];
 
-    const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
-    const normalizedLabels = labelTensor.sub(labelMin).div(labelMax.sub(labelMin));
-
-    return {
-      inputs: normalizedInputs,
-      labels: normalizedLabels,
-      // Return the min/max bounds so we can use them later.
-      inputMax,
-      inputMin,
-      labelMax,
-      labelMin,
+    for (let i = 0; i < classes.size; i++) {
+        dataByClass.push([]);
+        targetsByClass.push([]);
     }
+
+    var pos = Array.from(classes);
+
+    for (let i = 0; i < data.length; i++){
+         let indice = pos.indexOf(labels[i][0]);
+
+           dataByClass[indice].push(inputs[i]);
+        targetsByClass[indice].push(labels[i]);
+    }
+
+    // Split the data into a training set and a tet set, based on `testSplit`.
+    const numTestExamples = Math.round(numExamples * testSplit);
+    const numTrainExamples = numExamples - numTestExamples;
+
+    const xDims = dataByClass[0].length;
+
+    // Create a 2D `tf.Tensor` to hold the feature data.
+    const xs = tf.tensor2d(dataByClass);
+
+    // Create a 1D `tf.Tensor` to hold the labels, and convert the number label
+    // from the set {0, 1, 2} into one-hot encoding (.e.g., 0 --> [1, 0, 0]).
+    const ys = tf.oneHot(tf.tensor1d(targetsByClass).toInt(), pos.length);
+
+    // Split the data into training and test sets, using `slice`.
+    const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
+    const xTest  = xs.slice([numTrainExamples, 0], [numTestExamples, xDims]);
+    const yTrain = ys.slice([0, 0], [numTrainExamples, IRIS_NUM_CLASSES]);
+    const yTest  = ys.slice([0, 0], [numTestExamples, IRIS_NUM_CLASSES]);
+
+    return [xTrain, yTrain, xTest, yTest];
   });  
 }
 
