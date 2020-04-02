@@ -109,27 +109,12 @@ function execute(){
 
         var rodadaGroup = rodadaDim.group();
 
-        rodadaChart.dimension(rodadaDim)
-            .width(500).group(rodadaGroup)
-            .elasticY(true)
-            .x(d3.scaleLinear().domain([1, 38]))
-            .xAxis().tickFormat(e => {
-               return e;
-            })
-
         //periodo
         var periodoDim = ndx.dimension(d => {
             return d.periodo;
         });
 
         var periodoGroup = periodoDim.group();
-
-        periodoChart.height(400)
-                    .dimension(periodoDim)
-                    .group(periodoGroup)
-                    .elasticX(true)
-
-        //momento
 
         //tipo
         var tipoDim = ndx.dimension(function(d) {
@@ -138,11 +123,6 @@ function execute(){
 
         var tipoGroup = tipoDim.group();
 
-        tipoChart.height(600)
-                 .dimension(tipoDim)
-                 .group(tipoGroup)
-                 .elasticX(true)
-
         //equipe
         var equipeDim = ndx.dimension(d => {
             return d.equipe.nome_popular;
@@ -150,10 +130,6 @@ function execute(){
 
         var equipeGroup = equipeDim.group();
 
-        equipeChart.height(600)
-                   .dimension(equipeDim)
-                   .group(equipeGroup)
-                   .elasticX(true)
 
         //jogador
         var jogadorDim = ndx.dimension(function(d) {
@@ -162,26 +138,54 @@ function execute(){
 
         var jogadorGroup = getTops(jogadorDim.group());
 
-        jogadorChart.dimension(jogadorDim).height(600).group(jogadorGroup)// Assign colors to each value in the x scale domain
-                    .label(function(d) {
-                        return d.key;
-                    }).title(function(d) {
-                        return d.value;
-                    }).elasticX(true).xAxis().ticks(4)
 
-        //posicao
+
+        /** posicao
         var jogadorDim = ndx.dimension(function(d) {
             return d.atleta.nome_popular;
         });
 
-        var jogadorGroup = getTops(jogadorDim.group());
+        var jogadorGroup = getTops(jogadorDim.group()); */
 
-        jogadorChart.dimension(jogadorDim).height(400).group(jogadorGroup)// Assign colors to each value in the x scale domain
-                    .label(function(d) {
-                        return d.key;
-                    }).title(function(d) {
-                        return d.value;
-                    }).elasticX(true).xAxis().ticks(4)
+
+
+        charts = [
+
+            rodadaChart.width(500)
+                       .dimension(rodadaDim)
+                       .group(rodadaGroup)
+                       .elasticY(true)
+                       .x(d3.scaleLinear()
+                            .domain([1, 38])
+                       )
+                       .xAxis().tickFormat(e => {
+                           return e;
+                       }),
+
+            periodoChart.height(400)
+                        .dimension(periodoDim)
+                        .group(periodoGroup)
+                        .elasticX(true),
+
+            tipoChart.height(600)
+                     .dimension(tipoDim)
+                     .group(tipoGroup)
+                     .elasticX(true),
+
+            equipeChart.height(600)
+                       .dimension(equipeDim)
+                       .group(equipeGroup)
+                       .elasticX(true),
+
+            jogadorChart.height(600)
+                        .dimension(jogadorDim)
+                        .group(jogadorGroup)
+                        .label(function(d) {
+                            return d.key;
+                        }).title(function(d) {
+                            return d.value;
+                        }).elasticX(true).xAxis().ticks(4)
+        ]
 
         //grid                           
         var tableDim = ndx.dimension(d => {

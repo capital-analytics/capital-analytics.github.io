@@ -4,7 +4,10 @@
         <meta charset="utf-8">
         <link rel="stylesheet" type="text/css" href="../css/bootstrap4.min.css"/>
         <link rel="stylesheet" type="text/css" href="../css/dc.css"/>
+
         <style>
+            @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700);
+
             .dc-text-filter-input {
                 display: block;
                 width: 100%;
@@ -18,10 +21,34 @@
                 border-radius: .25rem;
                 transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
             }
+
+            h1 {
+              font-size: 50px;
+              margin-top: .3em;
+              margin-bottom: 0;
+            }
+
+            h1 + h2 {
+              margin-top: 0;
+            }
+
+            h2 {
+              font-weight: 400;
+              font-size: 25px;
+            }
+
+            h1, h2 {
+              font-family: "Yanone Kaffeesatz";
+              text-rendering: optimizeLegibility;
+            }
         </style>
     </head>
     <body>
         <div class="container">
+        <h1>Futebol Brasileiro</h1>
+        <h2>Performance dos jogadores do campeonato brasileiro em 2019</h2>
+
+        <p/>
             <div class="row">
                 <div class="col">
                     <div class="card">
@@ -87,13 +114,13 @@
         <script src='../js/dc.min.js'></script>
         <script src="requestData.js"></script>
 
-        <!-- google analytics  -->
+        <!-- google analytics 
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-145326356-1"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'UA-145326356-1');
-        </script> 
+        </script>  -->
     </body>
 </html>
