@@ -37,6 +37,7 @@ Promise.all([
 
     var lista = grid.map(x=>{
         return ({
+            "id": x.id,
             "nome": x.criadoPor.nome,
             "data": new Date(x.criadoEm.date),
             "resumo": (x.componentesDigitais) ? x.componentesDigitais[0].highlights : 'n/a',
@@ -49,7 +50,7 @@ Promise.all([
             //"setor": (x.juntadas[0].volume.pasta.setor) ? x.juntadas[0].volume.pasta.setor.unidade.sigla : 'outros',
         });
     }).filter(e => {
-        return e.coordenacao != " ";
+        return e.coordenacao != "";
     });
 
     var ndx = crossfilter(lista);
@@ -160,7 +161,7 @@ Promise.all([
                                     return e.data.toLocaleDateString();
                                 }},
                        ]).sortBy(function(d) {
-                            return d.data;
+                            return -d.id;
                        })
 
     //count

@@ -13,9 +13,9 @@ var usuarioChart    = dc.rowChart("#usuarioChart"),
  //Id;NUP;Tarefa_id;Setor;Usuario;Especie;Dia_hora
 const allData = Promise.all([
      //tarefas
-    d3.csv("../data/sapiens/tarefas.csv"),
+    d3.csv("tarefas.csv"),
     //atividades
-    d3.csv("../data/sapiens/atividades.csv")
+    d3.csv("atividades.csv")
 ]);
 
 
