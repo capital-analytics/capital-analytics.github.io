@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <meta charset="utf-8">    
+    <link rel="stylesheet" type="text/css" href="../../css/bootstrap4.min.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/dc.css"/>
+    <style>
+        .dc-chart g.row text {
+            fill: black;
+        }
+
+        .dc-text-filter-input {
+            display: block;
+            width: 100%;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+         }
+        
+        #monthly-volume-chart g.y {
+            display: none;
+        }
+        #logo {
+            margin-right: 2em;
+            margin-top: 2em;
+        }
+
+        .row{
+             color: #000; 
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="container"> 
+        <h4>Auxílio Emergencial</h4>
+        <h5>Dados obtidos no período de 01/04/2020 a 24/06/2020</h5>
+        <div class="row">
+           <div class="col">
+                 <div id="mesChart">
+                    <strong>Mês</strong>
+                    <a class="reset" href="javascript:mesChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <div class="col">
+                 <div id="semanaChart">
+                    <strong>Dia da semana</strong>
+                    <a class="reset" href="javascript:semanaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            <div class="col">
+                 <div id="horaChart">
+                    <strong>Hora</strong>
+                    <a class="reset" href="javascript:horaChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            <div class="col">
+                 <div id="vencidoChart">
+                    <strong>UF:</strong>
+                    <a class="reset" href="javascript:vencidosChart.filterAll();dc.redrawAll();" style="display: none;">resetar</a>
+
+                    <div class="clearfix"></div>
+                </div>        
+            </div>
+            </div> 
+            <div id="setorChart">
+                <strong>Origem: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:setorChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <div id="tipoChart">
+                <strong>Tipo da Ação: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:tipoChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div>
+            <!-- <div id="movimentoChart">
+                <strong>Processos: </strong>
+                <span class="reset" style="display:none;"> <span class="filter"></span></span>
+                <a class="reset" href="javascript:movimentoChart.filterAll(); dc.redrawAll();" style="display:none;"> resetar</a>
+                <div class="clearfix"></div>
+            </div> -->
+            <br/>
+            <div class="row">
+                <div class="col">
+                    <div id="search" placeholder="filtro"></div>
+                </div>
+                <div class="col">
+                    <div id="dataCount">
+                        <span class="filter-count"></span>
+                        selecionados de <span class="total-count"></span>
+                        registros |  <a href="javascript:dc.filterAll(); dc.renderAll();">resetar tudo</a>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <table class="table table-hover dc-data-table"></table>
+            </div> 
+        </div>
+        
+    <div>
+    <script src='../../js/d3.min.js'></script>
+    <script src='../../js/crossfilter.min.js'></script>
+    <script src='../../js/dc.min.js'></script>
+    <script src='auxilioEmergencial.js'></script>
+</body>
+</html>
